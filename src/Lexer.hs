@@ -11,11 +11,16 @@ import Debug.Trace
 data Token = TIdentifier String
            | TInteger Int
            | TFloat Float
+
+           | TKeyword String
            | TKTrue
            | TKFalse
            | TKIf
            | TKEi
            | TKElse
+
+           | TOperator String
+
            | TIndent
            | TDedent
            | TNewline
@@ -81,7 +86,8 @@ failPL = failPos "lexer"
 
 type Lexer = StateT LexerState (Either String)
 
-
+keywords = ["def", "var", "if", "ei", "else"]
+operators = ["+", "-", "*", "/", "->"]
 
 -- lexer :: [Char] -> [Token]
 lexer l =
@@ -175,7 +181,11 @@ readIdentifierOrKeyword = do
   LexerState {line=line} <- get
   let (tt, rest) = span isIdentifierChar line
   modify (\s -> s {line=rest})
-  return [(TIdentifier $ map fst tt, placesToRange tt)]
+  let t = map fst tt
+  if t `elem` keywords then
+    return [(TKeyword t, placesToRange tt)]
+  else
+    return [(TIdentifier t, placesToRange tt)]
 
 readNumber = do
   LexerState {line=line} <- get
@@ -204,16 +214,37 @@ readOperator = do
   if startswith "#" t then do
     modify (\s -> s {line=[]})
     return []
+  else if startswith "/*" t then do
+    modify (\s -> s {line = drop 2 line})
+    readBlockComment
   else
-    case t of
-      "+" -> do
-        modify (\s -> s {line=rest})
-        return [(TOpAdd, range)]
-      _ -> failPL $ "Unknown operator " ++ show t
+    if t `elem` operators then do
+      modify (\s -> s {line = rest})
+      return [(TOperator t, range)]
+    else
+      failPL $ "Unknown operator " ++ show t
   where
     startswith [] _ = True
     startswith (h:t) [] = False
     startswith (h:t) (k:l) = (h == k) && startswith t l
+
+readBlockComment = do
+  LexerState {line=line, script=script} <- get
+  case helper (line, script, False) of
+    Just (li, sc, nl) -> do
+      modify (\s -> s {line=li, script=sc})
+      if nl then return [(TNewline, unknownRange)] else return []
+    Nothing -> failPL "No maching closing comment sequence."
+  where
+    helper :: (PlacedString, [(Int, PlacedString)], Bool) -> Maybe (PlacedString, [(Int, PlacedString)], Bool)
+    helper (l, s, n) =
+      case l of
+        ('*', _):('/', _):t -> Just (t, s, n)
+        h:t -> helper (t, s, n)
+        [] ->
+          case s of
+            (_ , h):t -> helper (h, t, True)
+            [] -> Nothing
 
 skipSpaces :: Lexer ()
 skipSpaces = modify helper where
@@ -228,7 +259,8 @@ isDigit (c, _) = (c >= '0') && (c <= '9')
 isVLetter (c, _) = Ch.isAlpha c
 isLetter l@(c, _) = (c == '_') || isVLetter l
 isAlphaNum l = isDigit l || isLetter l
-isPunctuation (c, _) = (c == '+') || (c == '-') || (c == '#')
+punctuationChars = ['+', '-', '#', '/', '*']
+isPunctuation (c, _) = c `elem` punctuationChars
 isIdentifierChar l@(c, _) = isAlphaNum l || c == '\''
 isNumberChar l@(c, _) = isDigit l || c == '_' || c == '\'' || c == '.'
 
