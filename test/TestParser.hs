@@ -4,6 +4,7 @@ import Test.HUnit
 
 import Lexer
 import Parser
+import Ast
 
 -- runLexer :: String -> Either String [Token]
 -- runLexer s =
@@ -16,7 +17,6 @@ import Parser
 -- (~~>) s v = runLexer s ~?= v
 
 tests = TestList [
-  "Two Plus Two"                ~: testTwoPlusTwo
   -- "Identifier token"          ~: testIdent,
   -- "Number token"              ~: testNumber,
   -- "Add operator"              ~: testAddOperator,
@@ -25,17 +25,6 @@ tests = TestList [
   -- "Single indent"             ~: testSingleIndent
   ]
 
-
-
-tnl = TNewline
-eof = TEof
-tint = TInteger
-tid = TIdentifier
-tind = TIndent
-tded = TDedent
-
-testTwoPlusTwo = parser [tint 2, TOpAdd, tint 2, tnl, tnl, eof] ~?=
-  [AOpAdd (AInteger 2) (AInteger 2)]
 
 -- testIdent = "asd" ~~> Right [tid "asd", tnl, tnl, eof]
 --

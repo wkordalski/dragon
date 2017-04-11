@@ -6,7 +6,7 @@ import Lexer
 
 infix 4 ~~>
 (~~>) :: String -> Either String [Token] -> Test
-(~~>) s v = lexer s ~?= v
+(~~>) s v = (fmap (map fst) $ lexer s) ~?= v
 
 tests = TestList [
   "Identifier token"          ~: testIdent,
@@ -23,14 +23,15 @@ tint = TInteger
 tid = TIdentifier
 tind = TIndent
 tded = TDedent
+top = TOperator
 
 testIdent = "asd" ~~> Right [tid "asd", tnl, tnl, eof]
 
 testNumber = "9" ~~> Right [tint 9, tnl, tnl, eof]
 
-testAddOperator = "+" ~~> Right [TOpAdd, tnl, tnl, eof]
+testAddOperator = "+" ~~> Right [top "+", tnl, tnl, eof]
 
-testSimpleNumExpr = "2+6" ~~> Right [tint 2, TOpAdd, tint 6, tnl, tnl, eof]
+testSimpleNumExpr = "2+6" ~~> Right [tint 2, top "+", tint 6, tnl, tnl, eof]
 
 testComment = "asd # some comment\nbdf" ~~>
   Right [tid "asd", tnl, tid "bdf", tnl, tnl,  eof ]

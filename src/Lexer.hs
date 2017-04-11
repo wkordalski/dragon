@@ -13,12 +13,6 @@ data Token = TIdentifier String
            | TFloat Float
 
            | TKeyword String
-           | TKTrue
-           | TKFalse
-           | TKIf
-           | TKEi
-           | TKElse
-
            | TOperator String
 
            | TIndent
@@ -31,7 +25,6 @@ data Token = TIdentifier String
            | TSParenC
            | TCParenO
            | TCParenC
-           | TOpAdd
            deriving (Eq, Show, Ord)
 
 newtype Place = Place (Int, Int, Int) deriving (Eq, Ord)
@@ -78,16 +71,15 @@ failPos k s = do
 
 failPL = failPos "lexer"
 
--- instance Except LexerError where
---   noMsg  = LexerInternalError "Unknown internal error"
---   strMsg = LexerInternalError
 
 
 
 type Lexer = StateT LexerState (Either String)
 
-keywords = ["def", "var", "if", "ei", "else"]
-operators = ["+", "-", "*", "/", "->"]
+keywords = ["def", "var", "if", "ei", "else", "return", "while"]
+operators = ["+", "-", "*", "/", "->", "=", "\\", "::"]
+
+punctuationChars = ['+', '-', '#', '/', '*', '=', '\\', ':']
 
 -- lexer :: [Char] -> [Token]
 lexer l =
@@ -96,6 +88,7 @@ lexer l =
   let nl = skipEmptyLines pl in
   let ll = splitIntoLines nl in
   let mi = map measureIndent ll in
+  let lr = (filter (\(i, t) -> not $ null t) mi) ++ [(0, [])] in
   let dn = runStateT lexAll (makeLexerState mi) in
   case dn of
     Left err -> Left err
@@ -259,7 +252,6 @@ isDigit (c, _) = (c >= '0') && (c <= '9')
 isVLetter (c, _) = Ch.isAlpha c
 isLetter l@(c, _) = (c == '_') || isVLetter l
 isAlphaNum l = isDigit l || isLetter l
-punctuationChars = ['+', '-', '#', '/', '*']
 isPunctuation (c, _) = c `elem` punctuationChars
 isIdentifierChar l@(c, _) = isAlphaNum l || c == '\''
 isNumberChar l@(c, _) = isDigit l || c == '_' || c == '\'' || c == '.'
