@@ -27,13 +27,43 @@ import Lexer
   if      { TKeyword "if" }
   ei      { TKeyword "ei" }
   else    { TKeyword "else" }
+  then    { TKeyword "then" }
 
   while   { TKeyword "while" }
 
+  true    { TKeyword "true" }
+  false   { TKeyword "false" }
+  not     { TKeyword "not" }
+  and     { TKeyword "and" }
+  or      { TKeyword "or" }
+
   '='     { TOperator "="}
   '+'     { TOperator "+" }
+  '-'     { TOperator "-" }
+  '*'     { TOperator "*" }
+  '/'     { TOperator "/" }
+  '//'    { TOperator "//" }
+  '%'     { TOperator "%" }
+  '~'     { TOperator "~" }
+  '!'     { TOperator "!" }
+  '&'     { TOperator "&" }
   '::'    { TOperator "::" }
   ','     { TOperator "," }
+  '.'     { TOperator "." }
+  '**'    { TOperator "**" }
+  '=='    { TOperator "==" }
+  '!='    { TOperator "!=" }
+  '<'     { TOperator "<" }
+  '>'     { TOperator ">" }
+  '<='    { TOperator "<=" }
+  '>='    { TOperator ">=" }
+  '\\'    { TOperator "\\" }
+  '->'    { TOperator "->" }
+  '+='    { TOperator "+=" }
+  '*='    { TOperator "*=" }
+
+  '('     { TRParenO }
+  ')'     { TRParenC }
 
   '\n'    { TNewline }
   '\>'    { TIndent }
@@ -60,6 +90,8 @@ Statements : '\n' Statements          { $2 }
 Statement : Expr '\n'                             { SExpr $1 }
 Statement : return Expr '\n'                      { SReturn $2 }
 Statement : var id '::' TypeExpr '=' Expr '\n'    { SVariable $2 $4 $6 }
+Statement : def id ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { SFunction $2 $5 $3 [SReturn $7] }
+Statement : def id ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { SFunction $2 $7 $3 $9 }
 Statement : IfIf IfEiMany IfElseMaybe             { SIf ($1:$2) $3 }
 Statement : while Expr '\n' '\>' Statements '\<'  { SWhile $2 $5 }
 Statement : while Expr ',' Statement              { SWhile $2 [$4] }
@@ -75,18 +107,103 @@ IfEiMany : IfEi IfEiMany                  { $1 : $2 }
 IfElseMaybe : IfElse                      { $1 }
             | {- empty -}                 { [SPass] }
 
-Frac : int            { EInteger $1 }
-     | id             { EVariable $1 }
-Expr : Frac           { $1 }
-     | Expr '+' Frac  { EOpPlus $1 $3 }
+
+Expr : Expr14              { $1 }
+
+Expr0 :: { Expr }
+Expr0 : id                { EVariable $1 }
+      | int               { EInteger $1 }
+      | true              { EBoolean True }
+      | false             { EBoolean False }
+      | '(' ')'           { ENone }
+      | '(' Expr ')'      { $2 }
+      | '(' Expr TupleRest ')'  { ETuple ($2 : $3 ) }
+
+TupleRest : ',' Expr            { [$2] }
+          | ',' Expr TupleRest  { $2 : $3 }
+
+Expr1 : Expr1 '.' id      { EMember $1 $3 }
+      | Expr0             { $1 }
+
+Expr2 : '!' Expr2         { EDereference $2 }
+      | '&' Expr2         { EAddress $2 }
+      | Expr1             { $1 }
+
+Expr3 : Expr3 Expr2       { ECall $1 $2 }
+      | Expr2             { $1 }
+
+
+-- These two (Expr4, Expr3) states can be merged
+Expr4 :: { Expr }
+Expr4 : Expr3 '**' Expr4  { EOpPower $1 $3 }
+      | Expr3             { $1 }
+
+Expr4 : '+' Expr4         { EUOpPlus $2 }
+      | '-' Expr4         { EUOpMinus $2 }
+      | Expr3             { $1 }
+
+Expr5 : Expr5 '*' Expr4   { EOpMultiply $1 $3 }
+      | Expr5 '/' Expr4   { EOpDivision $1 $3 }
+      | Expr5 '%' Expr4   { EOpModulo $1 $3 }
+      | Expr4             { $1 }
+
+Expr6 : Expr6 '+' Expr5   { EOpAdd $1 $3 }
+      | Expr6 '-' Expr5   { EOpSubtract $1 $3 }
+      | Expr5             { $1 }
+
+Expr7 : Expr6             { $1 }
+
+Expr8 : Expr8 '==' Expr7  { EOpEqual $1 $3 }
+      | Expr8 '!=' Expr7  { EOpNotEqual $1 $3 }
+      | Expr8 '<' Expr7   { EOpLessThan $1 $3 }
+      | Expr8 '<=' Expr7  { EOpLessEqualThan $1 $3 }
+      | Expr8 '>' Expr7   { EOpGreaterThan $1 $3 }
+      | Expr8 '>=' Expr7  { EOpGreaterEqualThan $1 $3 }
+      | Expr7             { $1 }
+
+Expr9 : '\\' ArgsPatternMatch '(' '::' TypeExpr ')' '->' Expr    { ELambda $5 $2 $8 }
+      | Expr8                                           { $1 }
+
+Expr10 : Expr10 '=' Expr9   { EOpAssign $1 $3 }
+       | Expr10 '+=' Expr9  { EOpAssignAdd $1 $3 }
+       | Expr10 '*=' Expr9  { EOpAssignMultiply $1 $3 }
+       | Expr9              { $1 }
+
+Expr11 : not Expr10         { EOpNegation $2 }
+       | Expr10             { $1 }
+
+Expr12 : Expr12 and Expr11  { EOpConjunction $1 $3 }
+       | Expr11             { $1 }
+
+Expr13 : Expr13 or Expr12   { EOpAlternative $1 $3 }
+       | Expr12             { $1 }
+
+Expr14 : if Expr14 then Expr14 else Expr14  { EIf $2 $4 $6 }
+       | Expr13                             { $1 }
 
 ArgsPatternMatch : {- empty -}                    { [] }
 ArgsPatternMatch : PatternMatch ArgsPatternMatch  { $1 : $2 }
 
 PatternMatch : id         { PNamed $1 }
+             | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
+             | '(' ')'                              { PVoid }
+
+TuplePmatchRest : ',' PatternMatch        { [$2] }
+                | ',' PatternMatch TuplePmatchRest { $2 : $3 }
 
 -- add function type
-TypeExpr : id             { TNamed $1 }
+TypeExpr :: { TypeExpr }
+TypeExpr : TypeExpr1              { $1 }
+TypeExpr0 : id                    { TNamed $1 }
+          | '(' ')'               { TVoid }
+          | '(' TypeExpr ')'      { $2 }
+          | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
+
+TupleTypeExprRest : ',' TypeExpr    { [$2] }
+                  | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
+
+TypeExpr1 : TypeExpr0 '->' TypeExpr1  { TFunction $1 $3 }
+          | TypeExpr0                 { $1 }
 
 {
 

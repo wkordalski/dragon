@@ -76,10 +76,15 @@ failPL = failPos "lexer"
 
 type Lexer = StateT LexerState (Either String)
 
-keywords = ["def", "var", "if", "ei", "else", "return", "while"]
-operators = ["+", "-", "*", "/", "->", "=", "\\", "::"]
+keywords = ["def", "var", "if", "ei", "else", "return", "while", "true", "false", "and", "or", "not", "then"]
+operators = [
+  "+", "-", "*", "/", "->", "=", "\\", "::", ">", "<", ">=", "<=", "==", "!=",
+  ".", "**", "+=", "*=", ",", "//", "!", "&"
+  ]
 
-punctuationChars = ['+', '-', '#', '/', '*', '=', '\\', ':']
+punctuationChars = [
+  '+', '-', '#', '/', '*', '=', '\\', ':', '>', '!', '.', ',', '<', '&'
+  ]
 
 -- lexer :: [Char] -> [Token]
 lexer l =
@@ -166,6 +171,28 @@ lexLine = do
                     skipSpaces
                     rest <- lexLine
                     return $ tok ++ rest
+                | c `elem` ['(', '[', '{'] -> do
+                    let (paren, tok) = case c of {
+                      '(' -> (Round, TRParenO);
+                      '[' -> (Square, TSParenO);
+                      '{' -> (Curly, TCParenO) }
+                    modify (\s@LexerState{parens=parens} -> s {parens=paren:parens, line=t})
+                    skipSpaces
+                    rest <- lexLine
+                    return $ (tok, placesToRange [h]) : rest
+                | c `elem` [')', ']', '}'] -> do
+                    let (paren, tok) = case c of {
+                      ')' -> (Round, TRParenC);
+                      ']' -> (Square, TSParenC);
+                      '}' -> (Curly, TCParenC) }
+                    LexerState{parens=parens} <- get
+                    case parens of
+                      hp:tp | hp == paren -> do
+                        modify (\s@LexerState{parens=parens} -> s {parens=tp, line=t})
+                        skipSpaces
+                        rest <- lexLine
+                        return $ (tok, placesToRange [h]) : rest
+                      otherwise -> failPL "Unmatching parenthesis."
                 | c == '\'' -> failPL "Character literals not supported"
                 | c == '"' -> failPL "String literals not supported"
                 | otherwise -> failPL $ "Unexpected character " ++ show h
