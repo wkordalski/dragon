@@ -11,6 +11,7 @@ import Lexer
 }
 
 %name parserWrapper
+%name parserExprWrapper ProgramExpr
 %monad { Parser }
 %lexer { lexerWrapper } { TEof }
 %tokentype { Token }
@@ -18,8 +19,12 @@ import Lexer
 
 %token
   id      { TIdentifier $$ }
-  int     { TInteger $$ }
+  integer { TInteger $$ }
 
+  int     { TKeyword "int" }
+  bool    { TKeyword "bool" }
+  ptr     { TKeyword "ptr" }
+  
   def     { TKeyword "def" }
   var     { TKeyword "var" }
   return  { TKeyword "return" }
@@ -73,6 +78,10 @@ import Lexer
 %%
 
 Program : Declarations           { $1 }
+ProgramExpr : Expr Newlines      { $1 }
+
+Newlines : '\n'                   { () }
+Newlines : '\n' Newlines          { () }
 
 Declarations : Declaration              { [$1] }
 Declarations : Declaration Declarations { $1 : $2 }
@@ -112,7 +121,7 @@ Expr : Expr14              { $1 }
 
 Expr0 :: { Expr }
 Expr0 : id                { EVariable $1 }
-      | int               { EInteger $1 }
+      | integer           { EInteger $1 }
       | true              { EBoolean True }
       | false             { EBoolean False }
       | '(' ')'           { ENone }
@@ -133,14 +142,12 @@ Expr3 : Expr3 Expr2       { ECall $1 $2 }
       | Expr2             { $1 }
 
 
--- These two (Expr4, Expr3) states can be merged
-Expr4 :: { Expr }
-Expr4 : Expr3 '**' Expr4  { EOpPower $1 $3 }
-      | Expr3             { $1 }
+Expr3a : Expr3 '**' Expr3a  { EOpPower $1 $3 }
+Expr3a : Expr3             { $1 }
 
 Expr4 : '+' Expr4         { EUOpPlus $2 }
       | '-' Expr4         { EUOpMinus $2 }
-      | Expr3             { $1 }
+      | Expr3a            { $1 }
 
 Expr5 : Expr5 '*' Expr4   { EOpMultiply $1 $3 }
       | Expr5 '/' Expr4   { EOpDivision $1 $3 }
@@ -195,6 +202,8 @@ TuplePmatchRest : ',' PatternMatch        { [$2] }
 TypeExpr :: { TypeExpr }
 TypeExpr : TypeExpr1              { $1 }
 TypeExpr0 : id                    { TNamed $1 }
+          | int                   { TInt }
+          | bool                  { TBool }
           | '(' ')'               { TVoid }
           | '(' TypeExpr ')'      { $2 }
           | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
@@ -202,8 +211,12 @@ TypeExpr0 : id                    { TNamed $1 }
 TupleTypeExprRest : ',' TypeExpr    { [$2] }
                   | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
 
-TypeExpr1 : TypeExpr0 '->' TypeExpr1  { TFunction $1 $3 }
+
+TypeExpr1 : ptr TypeExpr1             { TPointer $2 }
           | TypeExpr0                 { $1 }
+
+TypeExpr2 : TypeExpr1 '->' TypeExpr2  { TFunction $1 $3 }
+          | TypeExpr1                 { $1 }
 
 {
 
@@ -230,9 +243,14 @@ lexerWrapper cont = do
   modify (\s -> ParserState {tokens=rest, range=(betterRange old_range range)})
   cont token
 
-parser :: [PlacedToken] -> Either String Program
-parser tokens =
-  case runStateT parserWrapper (ParserState {tokens=tokens, range=unknownRange}) of
+parserWrapperWrapper pw tokens =
+  case runStateT pw (ParserState {tokens=tokens, range=unknownRange}) of
     Left err -> Left err
     Right (res, _) -> Right res
+
+parser :: [PlacedToken] -> Either String Program
+parser = parserWrapperWrapper parserWrapper
+
+parserExpr :: [PlacedToken] -> Either String Expr
+parserExpr = parserWrapperWrapper parserExprWrapper
 }

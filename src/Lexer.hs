@@ -76,9 +76,18 @@ failPL = failPos "lexer"
 
 type Lexer = StateT LexerState (Either String)
 
-keywords = ["def", "var", "if", "ei", "else", "return", "while", "true", "false", "and", "or", "not", "then"]
+keywords = [
+  "def", "var",
+  "if", "ei", "else", "return", "while",
+  "true", "false",
+  "and", "or", "not",
+  "then",
+  "bool", "int", "ptr"
+  ]
+
 operators = [
-  "+", "-", "*", "/", "->", "=", "\\", "::", ">", "<", ">=", "<=", "==", "!=",
+  "+", "-", "*", "/", "->", "=", "\\", "::",
+  ">", "<", ">=", "<=", "==", "!=",
   ".", "**", "+=", "*=", ",", "//", "!", "&"
   ]
 

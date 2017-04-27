@@ -54,13 +54,17 @@ data Expr
 data Ptrn
   = PNamed String
   | PTuple [Ptrn]
+  | PDereference Ptrn
   | PVoid
   deriving (Show, Eq)
 
 data TypeExpr
   = TUnknown
   | TNamed String
+  | TInt
+  | TBool
   | TVoid
+  | TPointer TypeExpr
   | TFunction TypeExpr TypeExpr
   | TTuple [TypeExpr]
   deriving (Show, Eq)
