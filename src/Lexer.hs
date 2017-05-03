@@ -78,7 +78,7 @@ type Lexer = StateT LexerState (Either String)
 
 keywords = [
   "def", "var",
-  "if", "ei", "else", "return", "while",
+  "if", "ei", "else", "return", "while", "pass",
   "true", "false",
   "and", "or", "not",
   "then",

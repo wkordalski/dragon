@@ -1,6 +1,7 @@
 module Types.Core (
   Type (..), TCM, runTCM, typeFromAst, matchType,
-  askTypeOf, localTypeOf, localTypesOf,
+  askTypeOf, askReturnType, askAutoReturn,
+  localTypeOf, localTypesOf, localFunction, localNoAutoReturn,
   newTypeVariable) where
 
 import qualified Ast as A
@@ -30,10 +31,16 @@ data TCMState = TCMState {
 tcmState = TCMState { tvar_counter=0 }
 
 data TCMEnvironment = TCMEnvironment {
-  name_typing :: M.Map String Type
+  name_typing :: M.Map String Type,
+  return_type :: Maybe Type,
+  auto_return :: Bool
 }
 
-tcmEnvironment = TCMEnvironment { name_typing=M.empty }
+tcmEnvironment = TCMEnvironment {
+  name_typing=M.empty,
+  return_type=Nothing,
+  auto_return=False
+}
 
 -- Type Checking Monad
 type TCM a = StateT TCMState (ReaderT TCMEnvironment (Either String)) a
@@ -64,12 +71,34 @@ askTypeOf s = do
   else
     throwError $ "Unknown identifier " ++ s ++ "\n"
 
+askReturnType :: TCM Type
+askReturnType = do
+  rt <- asks return_type
+  case rt of
+    Just t -> return t
+    Nothing -> throwError $ "No return type outside function!"
+
+
+askAutoReturn :: TCM Bool
+askAutoReturn = asks auto_return
+
 localTypeOf :: String -> Type -> TCM a -> TCM a
-localTypeOf s t m = local (\e -> e {name_typing=M.insert s t (name_typing e)}) m
+localTypeOf s t = local (\e -> e {name_typing=M.insert s t (name_typing e)})
 
 localTypesOf :: (M.Map String Type) -> TCM a -> TCM a
-localTypesOf s m = local (\e -> e {name_typing=(name_typing e) `M.union` s}) m
+localTypesOf s = local (\e -> e {name_typing=s `M.union` (name_typing e)})
 
+localFunction :: String -> Type -> (M.Map String Type) -> Type -> TCM a -> TCM a
+localFunction s t mta tr = local applyFunc where
+  applyFunc e =
+    e {
+      name_typing=mta `M.union` (M.insert s t (name_typing e)),
+      return_type=Just tr,
+      auto_return=True
+    }
+
+localNoAutoReturn :: TCM a -> TCM a
+localNoAutoReturn = local (\e -> e {auto_return=False})
 
 newTypeVariable :: TCM Type
 newTypeVariable = do

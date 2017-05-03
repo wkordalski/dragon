@@ -15,7 +15,9 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lexer, Parser, Ast, Types.Core, Types.Expr, Types.Ptrn, Types.Builtins
+  exposed-modules:     Lexer, Parser, Ast,
+                       Types.Core, Types.Builtins, Types.Program
+                       Types.Stmt, Types.Decl, Types.Expr, Types.Ptrn
   build-depends:       base >= 4.7 && < 5, mtl, array, containers
   build-tools:         happy
   default-language:    Haskell2010

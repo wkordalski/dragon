@@ -24,7 +24,7 @@ import Lexer
   int     { TKeyword "int" }
   bool    { TKeyword "bool" }
   ptr     { TKeyword "ptr" }
-  
+
   def     { TKeyword "def" }
   var     { TKeyword "var" }
   return  { TKeyword "return" }
@@ -35,6 +35,7 @@ import Lexer
   then    { TKeyword "then" }
 
   while   { TKeyword "while" }
+  pass    { TKeyword "pass" }
 
   true    { TKeyword "true" }
   false   { TKeyword "false" }
@@ -104,6 +105,7 @@ Statement : def id ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'
 Statement : IfIf IfEiMany IfElseMaybe             { SIf ($1:$2) $3 }
 Statement : while Expr '\n' '\>' Statements '\<'  { SWhile $2 $5 }
 Statement : while Expr ',' Statement              { SWhile $2 [$4] }
+Statement : pass '\n'                             { SPass }
 
 IfIf : if Expr '\n' '\>' Statements '\<'  { ($2, $5) }
      | if Expr ',' Statement              { ($2, [$4]) }
@@ -200,7 +202,7 @@ TuplePmatchRest : ',' PatternMatch        { [$2] }
 
 -- add function type
 TypeExpr :: { TypeExpr }
-TypeExpr : TypeExpr1              { $1 }
+TypeExpr : TypeExpr2              { $1 }
 TypeExpr0 : id                    { TNamed $1 }
           | int                   { TInt }
           | bool                  { TBool }

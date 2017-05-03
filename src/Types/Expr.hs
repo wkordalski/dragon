@@ -45,8 +45,10 @@ typeOf' (A.EOpAssignAdd e1 e2) = do
   return (t1, True)
 
 
-typeOfExpr :: A.Expr -> Either String Type
-typeOfExpr expr =
-  case runTCM (typeOf' expr) of
-    Left err -> Left err
-    Right ((res, islv), state) -> Right res
+typeOfExpr :: A.Expr -> TCM Type
+typeOfExpr expr = do
+  (res, islv) <- typeOf' expr
+  return res
+
+checkExprType :: A.Expr -> Type -> TCM ()
+checkExprType e t = typeOfExpr e >>= matchType t >> return ()
