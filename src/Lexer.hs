@@ -74,7 +74,7 @@ failPL = failPos "lexer"
 
 
 
-type Lexer = StateT LexerState (Either String)
+type Lexer = StateT LexerState (Except String)
 
 keywords = [
   "def", "var",
@@ -95,7 +95,7 @@ punctuationChars = [
   '+', '-', '#', '/', '*', '=', '\\', ':', '>', '!', '.', ',', '<', '&'
   ]
 
--- lexer :: [Char] -> [Token]
+lexer :: [Char] -> Except String [PlacedToken]
 lexer l =
   let l1 = runReader (addEndingNewline l) False in
   let pl = runReader (addPlace l1) (Place (1,0, 0)) in
@@ -104,9 +104,9 @@ lexer l =
   let mi = map measureIndent ll in
   let lr = (filter (\(i, t) -> not $ null t) mi) ++ [(0, [])] in
   let dn = runStateT lexAll (makeLexerState mi) in
-  case dn of
-    Left err -> Left err
-    Right (tok, _) -> Right $ tok ++ [(TEof, Range(pos, pos))] where
+  case runExcept dn of
+    Left err -> throwError err
+    Right (tok, _) -> return $ tok ++ [(TEof, Range(pos, pos))] where
       pos = Place(1 + length (filter (== '\n') l), 0, length l)
 
 

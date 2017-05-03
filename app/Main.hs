@@ -6,11 +6,12 @@ import Types.Core
 import Types.Builtins
 import Types.Program
 
-process s = lexer s >>= parser
+import Control.Monad.Except
+
 
 main :: IO ()
 main = do
   code <- getContents
-  case lexer code >>= parser >>= (\program -> runTCM (withBuiltins $ checkProgramTypes program)) of
+  case runExcept (lexer code >>= parser >>= (\program -> runTCM (withBuiltins $ checkProgramTypes program))) of
     Right _ -> putStrLn "Ok"
     Left err -> putStrLn err

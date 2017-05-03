@@ -17,7 +17,8 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lexer, Parser, Ast,
                        Types.Core, Types.Builtins, Types.Program
-                       Types.Stmt, Types.Decl, Types.Expr, Types.Ptrn
+                       Types.Stmt, Types.Decl, Types.Expr, Types.Ptrn,
+                       Interpretter.Core
   build-depends:       base >= 4.7 && < 5, mtl, array, containers
   build-tools:         happy
   default-language:    Haskell2010
@@ -26,7 +27,7 @@ executable dragon
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base, dragon
+  build-depends:       base, dragon, mtl
   default-language:    Haskell2010
 
 test-suite dragon-test

@@ -43,7 +43,7 @@ tcmEnvironment = TCMEnvironment {
 }
 
 -- Type Checking Monad
-type TCM a = StateT TCMState (ReaderT TCMEnvironment (Either String)) a
+type TCM a = StateT TCMState (ReaderT TCMEnvironment (Except String)) a
 
 runTCM m = runReaderT (runStateT m tcmState) tcmEnvironment
 

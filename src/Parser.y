@@ -224,12 +224,12 @@ TypeExpr2 : TypeExpr1 '->' TypeExpr2  { TFunction $1 $3 }
 
 parseError _ = do
   ParserState {range=range} <- get
-  fail $ "Parse error " ++ show range
+  throwError $ "Parse error " ++ show range
 
 
 data ParserState = ParserState { tokens :: [PlacedToken], range :: Range } deriving (Show)
 
-type Parser ttt = StateT ParserState (Either String) ttt
+type Parser ttt = StateT ParserState (Except String) ttt
 
 betterPlace (Place (a, b, c)) (Place (d, e, f)) =
   Place ((newer a d), (newer b e), (newer c f))
@@ -246,13 +246,13 @@ lexerWrapper cont = do
   cont token
 
 parserWrapperWrapper pw tokens =
-  case runStateT pw (ParserState {tokens=tokens, range=unknownRange}) of
-    Left err -> Left err
-    Right (res, _) -> Right res
+  case runExcept (runStateT pw (ParserState {tokens=tokens, range=unknownRange})) of
+    Left err -> throwError err
+    Right (res, _) -> return res
 
-parser :: [PlacedToken] -> Either String Program
+parser :: [PlacedToken] -> Except String Program
 parser = parserWrapperWrapper parserWrapper
 
-parserExpr :: [PlacedToken] -> Either String Expr
+parserExpr :: [PlacedToken] -> Except String Expr
 parserExpr = parserWrapperWrapper parserExprWrapper
 }
