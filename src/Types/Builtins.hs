@@ -9,5 +9,9 @@ opName n = "φ_" ++ n
 
 withBuiltins :: TCM a -> TCM a
 withBuiltins m = do
-  let builtins = M.fromList [(opName "add", TInt :-> TInt :-> TInt)]
-  localTypesOf builtins m
+  localTypesOf (
+    M.fromList [
+      (opName "add", TInt :-> TInt :-> TInt),
+      ("print", TInt :-> TVoid)
+    ]
+    ) m
