@@ -17,6 +17,7 @@ execStmt (A.SReturn e) = callCC $ \_ -> do
   k <- askReturnCont
   v <- evalExpr e >>= unreference
   k v
+  return ()
 
 execStmt (A.SExpr e) = evalExpr e >> return ()
 
@@ -24,6 +25,6 @@ execStmt i@(A.SWhile e s) = callCC $ \k -> do
   (VBool b) <- evalExpr e >>= unreference
   if b then
     --(localContinueBreakCont (execStmt i) k $ (execStmts s >> execStmt i)) >> k
-    execStmts s >> execStmt i >> k ()
+    execStmts s >> execStmt i >> k () >> return ()
   else
     k ()

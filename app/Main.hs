@@ -20,7 +20,7 @@ runCode code = do
         Left err -> putStrLn err >> return ()
         Right _ -> do
           let ((v, o), s) = runIPM return (IB.withBuiltins $ runProgram ast)
-          putStrLn o
+          putStr o
           case v of
             Left err -> putStrLn err >> return ()
             Right _ -> return ()

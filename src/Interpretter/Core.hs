@@ -13,7 +13,7 @@ data IPMEnvironment r = IPMEnvironment {
   symbols :: M.Map String Loc,
   -- for GC - the roots
   allSymbols :: [Loc],
-  returnCont :: Maybe (Value r -> IPM r ())
+  returnCont :: Maybe (Value r -> IPM r (Value r))
 }
 data IPMState r = IPMState {
   locCounter :: Int,
@@ -80,7 +80,7 @@ askMemory l = callCC $ \k -> do
     VUninitialized -> throwError $ "Using uninitialized global variable/constant!"
     _ -> k v
 
-askReturnCont :: IPM r (Value r -> IPM r ())
+askReturnCont :: IPM r (Value r -> IPM r (Value r))
 askReturnCont = do
   (Just k) <- asks returnCont
   return k
@@ -101,3 +101,6 @@ allocMemory v = do
   a <- gets locCounter
   modify (\s -> s {locCounter=a+1, memory=M.insert a v (memory s)})
   return a
+
+setMemory :: Loc -> Value r -> IPM r ()
+setMemory l v = modify (\s -> s {memory=M.insert l v (memory s)})
