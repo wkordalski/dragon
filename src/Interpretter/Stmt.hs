@@ -7,22 +7,23 @@ import Control.Monad.Cont
 
 import qualified Ast as A
 
-execStmts :: [A.Stmt] -> IPM r IPMCont
-execStmts [] = return CNormal
-execStmts (h:t) = execStmt h >>= do_rest where
-  do_rest CNormal = execStmts t
-  do_rest r = return r
+execStmts :: [A.Stmt] -> IPM r ()
+execStmts [] = return ()
+execStmts (h:t) = execStmt h >> execStmts t
 
 
-execStmt :: A.Stmt -> IPM r IPMCont
-execStmt (A.SReturn e) =
-  evalExpr e >>= unreference >>= (\v -> return $ CReturn v)
+execStmt :: A.Stmt -> IPM r ()
+execStmt (A.SReturn e) = callCC $ \_ -> do
+  k <- askReturnCont
+  v <- evalExpr e >>= unreference
+  k v
 
-execStmt (A.SExpr e) = evalExpr e >> return CNormal
+execStmt (A.SExpr e) = evalExpr e >> return ()
 
-execStmt (A.SWhile e s) = do
+execStmt i@(A.SWhile e s) = callCC $ \k -> do
   (VBool b) <- evalExpr e >>= unreference
   if b then
-    execStmts s
+    --(localContinueBreakCont (execStmt i) k $ (execStmts s >> execStmt i)) >> k
+    execStmts s >> execStmt i >> k ()
   else
-    return $ CNormal
+    k ()

@@ -3,16 +3,18 @@ module Ast where
 type Program = [Decl]
 
 data Decl
-  = DVariable String TypeExpr Expr
-  | DFunction String TypeExpr [Ptrn] [Stmt]
+  = DVariable Ptrn TypeExpr Expr
+  | DFunction Ptrn TypeExpr [Ptrn] [Stmt]
   deriving (Show, Eq)
 
 data Stmt
   = SExpr Expr
   | SReturn Expr
+  | SBreak
+  | SContinue
   | SPass
-  | SVariable String TypeExpr Expr
-  | SFunction String TypeExpr [Ptrn] [Stmt]
+  | SVariable Ptrn TypeExpr Expr
+  | SFunction Ptrn TypeExpr [Ptrn] [Stmt]
   | SIf [(Expr, [Stmt])] [Stmt]
   | SWhile Expr [Stmt]
   deriving (Show, Eq)

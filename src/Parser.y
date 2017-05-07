@@ -89,9 +89,9 @@ Declarations : Declaration Declarations { $1 : $2 }
 Declarations : '\n'                     { [] }
 Declarations : '\n' Declarations        { $2 }
 
-Declaration : var id '::' TypeExpr '=' Expr '\n'                                    { DVariable $2 $4  $6 }
-Declaration : def id ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { DFunction $2 $5 $3 [SReturn $7] }
-Declaration : def id ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { DFunction $2 $7 $3 $9 }
+Declaration : var PatternMatch '::' TypeExpr '=' Expr '\n'                                    { DVariable $2 $4  $6 }
+Declaration : def PatternMatch ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { DFunction $2 $5 $3 [SReturn $7] }
+Declaration : def PatternMatch ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { DFunction $2 $7 $3 $9 }
 
 Statements : Statement                { [$1] }
 Statements : Statement Statements     { $1 : $2 }
@@ -99,9 +99,9 @@ Statements : '\n' Statements          { $2 }
 
 Statement : Expr '\n'                             { SExpr $1 }
 Statement : return Expr '\n'                      { SReturn $2 }
-Statement : var id '::' TypeExpr '=' Expr '\n'    { SVariable $2 $4 $6 }
-Statement : def id ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { SFunction $2 $5 $3 [SReturn $7] }
-Statement : def id ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { SFunction $2 $7 $3 $9 }
+Statement : var PatternMatch '::' TypeExpr '=' Expr '\n'    { SVariable $2 $4 $6 }
+Statement : def PatternMatch ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { SFunction $2 $5 $3 [SReturn $7] }
+Statement : def PatternMatch ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { SFunction $2 $7 $3 $9 }
 Statement : IfIf IfEiMany IfElseMaybe             { SIf ($1:$2) $3 }
 Statement : while Expr '\n' '\>' Statements '\<'  { SWhile $2 $5 }
 Statement : while Expr ',' Statement              { SWhile $2 [$4] }

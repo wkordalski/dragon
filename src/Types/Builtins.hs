@@ -8,10 +8,10 @@ opName n = "φ_" ++ n
 
 
 withBuiltins :: TCM a -> TCM a
-withBuiltins m = do
+withBuiltins = do
   localTypesOf (
     M.fromList [
       (opName "add", TInt :-> TInt :-> TInt),
       ("print", TInt :-> TVoid)
     ]
-    ) m
+    )

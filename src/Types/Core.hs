@@ -88,11 +88,11 @@ localTypeOf s t = local (\e -> e {name_typing=M.insert s t (name_typing e)})
 localTypesOf :: (M.Map String Type) -> TCM a -> TCM a
 localTypesOf s = local (\e -> e {name_typing=s `M.union` (name_typing e)})
 
-localFunction :: String -> Type -> (M.Map String Type) -> Type -> TCM a -> TCM a
-localFunction s t mta tr = local applyFunc where
+localFunction :: (M.Map String Type) -> (M.Map String Type) -> Type -> TCM a -> TCM a
+localFunction sm mta tr = local applyFunc where
   applyFunc e =
     e {
-      name_typing=mta `M.union` (M.insert s t (name_typing e)),
+      name_typing=mta `M.union` (sm `M.union` name_typing e),
       return_type=Just tr,
       auto_return=True
     }
