@@ -1,6 +1,7 @@
 module Interpretter.Decl where
 
 import Interpretter.Core
+import Interpretter.Expr
 import Interpretter.Ptrn
 import Interpretter.Stmt
 
@@ -11,7 +12,7 @@ import qualified Ast as A
 
 import qualified Data.Map as M
 
-runDecls :: [A.Decl] -> IPM r ()
+runDecls :: Monad m => [A.Decl] -> IPM r m ()
 
 runDecls [] = return ()
 runDecls ds = do
@@ -19,11 +20,11 @@ runDecls ds = do
   localSymbols (M.fromList (map (\e -> (e, VUninitialized)) dsn))
     (initializeFunctions ds >> initializeNonFunctions ds >> return ())
 
-getPatternOfDecl :: A.Decl -> IPM r A.Ptrn
+getPatternOfDecl :: A.Decl -> IPM r m A.Ptrn
 getPatternOfDecl (A.DVariable p _ _) = return p
 getPatternOfDecl (A.DFunction p _ _ _) = return p
 
-getNamesOfDecls :: [A.Decl] -> IPM r [String]
+getNamesOfDecls :: [A.Decl] -> IPM r m [String]
 getNamesOfDecls [] = return []
 getNamesOfDecls (h:t) = do
   p <- getPatternOfDecl h
@@ -31,29 +32,51 @@ getNamesOfDecls (h:t) = do
   r <- getNamesOfDecls t
   return $ (fst <$> M.toList m) ++ r
 
-initializeFunctions :: [A.Decl] -> IPM r ()
+initializeFunctions :: Monad m => [A.Decl] -> IPM r m ()
 initializeFunctions ds = mapM_ initializeFunction (filter isFunction ds)
 
-initializeFunction :: A.Decl -> IPM r ()
+initializeFunction :: Monad m => A.Decl -> IPM r m ()
 initializeFunction (A.DFunction p t ps ss) = do
   let (A.PNamed s) = p
   l <- askSymbol s
-  let fun args = callCC $ \k -> localFunDecl ps args k $ execStmts ss >> k VNone
+  let fun args cont = localFunDecl ps args cont $ execStmts ss
   let f = VFunction (length ps) [] fun
   setMemory l f
 
-localFunDecl :: [A.Ptrn] -> [Value r] -> (Value r -> IPM r (Value r)) -> IPM r (Value r) -> IPM r (Value r)
+localFunDecl :: Monad m => [A.Ptrn] -> [Value r m] -> (Value r m -> IPM r m (Value r m)) -> IPM r m () -> IPM r m (Value r m)
 localFunDecl ps vs k m = do
   sa <- patternsMatchValues ps vs
-  localSymbols sa $ local (\e -> e {returnCont=Just k}) m
+  (localSymbolsNrc sa k m) >> k VNone
+  --(localSymbols sa $ local (\e -> e {returnCont=Just k, rcCounter=(rcCounter e + 1)}) m) >> k VNone
+
+localSymbolsNrc s k m = do
+  let symlist = M.toList s
+  ss <- mapM (\(n, v) -> do { a <- allocMemory v; return (n, a) }) symlist
+  local (\e -> e {
+    symbols= (M.fromList ss) `M.union` (symbols e),
+    allSymbols= (snd <$> ss) ++ (allSymbols e),
+    returnCont=Just k, rcCounter=(rcCounter e + 1)
+    }) m
 
 isFunction :: A.Decl -> Bool
 isFunction (A.DVariable _ _ _) = False
 isFunction (A.DFunction _ _ [] _) = False
 isFunction (A.DFunction _ _ _ _) = True
 
-initializeNonFunctions :: [A.Decl] -> IPM r ()
-initializeNonFunctions ds = return ()
+initializeNonFunctions :: Monad m => [A.Decl] -> IPM r m ()
+initializeNonFunctions ds =
+  mapM_ initializeNonFunction (filter (not . isFunction) ds)
+
+initializeNonFunction :: Monad m => A.Decl -> IPM r m ()
+initializeNonFunction (A.DFunction p _ [] ss) = do
+  m <- callCC (\k -> (local (\e -> e {returnCont=Just k}) (execStmts ss)) >> return VNone) >>= patternMatchValue p
+  mapM_ (\(s, v) -> do { l <- askSymbol s; setMemory l v }) (M.toList m)
+
+initializeNonFunction (A.DVariable p _ e) = do
+  v <- evalExpr e
+  m <- patternMatchValue p v
+  mapM_ (\(s, v) -> do { l <- askSymbol s; setMemory l v }) (M.toList m)
+
 -- zinterpretowanie deklaracji funkcji polega na tym, że tworzymy funkcję.
 -- która ustawia odpowiednie kontynuacje w środowisku i sykonuje execStmts na kodzie
 

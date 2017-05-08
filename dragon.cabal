@@ -36,8 +36,8 @@ test-suite dragon-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Main.hs
-  other-modules:       TestLexer, TestParser, TestSyntax
-  build-depends:       base, dragon, HUnit
+  other-modules:       TestLexer, TestParser, TestSyntax, TestRunProgram
+  build-depends:       base, dragon, HUnit, mtl
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

@@ -6,33 +6,36 @@ import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
+import Control.Monad.RWS
 
 import qualified Data.Map as M
 
-data IPMEnvironment r = IPMEnvironment {
+data IPMEnvironment r m = IPMEnvironment {
   symbols :: M.Map String Loc,
   -- for GC - the roots
   allSymbols :: [Loc],
-  returnCont :: Maybe (Value r -> IPM r (Value r))
+  returnCont :: Maybe (Value r m -> IPM r m (Value r m)),
+  rcCounter :: Int
 }
-data IPMState r = IPMState {
+data IPMState r m = IPMState {
   locCounter :: Int,
-  memory :: M.Map Loc (Value r)
+  memory :: M.Map Loc (Value r m),
+  output :: String
 }
 
 type Loc = Int
 
-data Value r
-  = VInt Int | VBool Bool | VNone | VTuple [Value r]
+data Value r m
+  = VInt Int | VBool Bool | VNone | VTuple [Value r m]
   -- function is such a thing that gets parameter, continuation (depending on result)
   -- and returns continuation
   | VLReference Loc
   -- count of parameters to run, applied parameters, what to call then
-  | VFunction Int [Value r] ([Value r] -> IPM r (Value r))
+  | VFunction Int [Value r m] ([Value r m] -> (Value r m -> IPM r m (Value r m)) -> IPM r m (Value r m))
   -- global variable not initialized now - initialization should be done now
   | VUninitialized
 
-instance Show (Value r) where
+instance Show (Value r m) where
   show (VInt n) = "VInt " ++ show n
   show (VBool b) = "VBool " ++ show b
   show (VNone) = "VNone"
@@ -45,34 +48,37 @@ instance Show (Value r) where
 ipmEnvironment = IPMEnvironment {
   symbols=M.empty,
   allSymbols=[],
-  returnCont=Nothing
+  returnCont=Nothing,
+  rcCounter=0
 }
 ipmState = IPMState {
   locCounter=0,
-  memory=M.empty
+  memory=M.empty,
+  output=""
 }
 
-type IPMComplete r = StateT (IPMState r) (ReaderT (IPMEnvironment r) Identity)
 -- r is type of the result after all continuation execution (probably)
 -- a is type of thing passed to return
-type IPM r a = ExceptT String (WriterT String (ContT r (IPMComplete r))) a
+type IPM r m a = ExceptT String (ReaderT (IPMEnvironment r m) (ContT r (StateT (IPMState r m) m))) a
+--data IPMGeneric a where
+--  IPMGeneric :: (forall r m. IPM r m a) -> IPMGeneric a
 --type IPM r a = ContT r (StateT (IPMState r) (ReaderT (IPMEnvironment r) (Writer String))) a
 
 --type MM r a = (ExceptT String (WriterT String (ContT r (StateT Int (Reader Int))))) a
 
 
---runIPM :: IPM r a -> (ExceptT String IO) (r, IPMState)
-runIPM :: ((Either String a, String) -> IPMComplete r r) -> IPM r a -> (r, IPMState r)
-runIPM k m = runIdentity $ runReaderT (runStateT (runContT (runWriterT (runExceptT m)) k) ipmState) ipmEnvironment
---runIPM k m = runWriter $ runReaderT (runStateT (runContT m k)
+--runIPM :: ((Either String a, String) -> IPMComplete r r) -> IPM r a -> (r, IPMState r)
+runIPM :: (Either String a -> (StateT (IPMState r m) m) r) -> IPM r m a -> m (r, IPMState r m)
+--runIPM k m = runIdentity $ runReaderT (runStateT (runContT (runWriterT (runExceptT m)) k) ipmState) ipmEnvironment
+runIPM k m = runStateT (runContT (runReaderT (runExceptT m) ipmEnvironment) k) ipmState
 
-askSymbol :: String -> IPM r Loc
+askSymbol :: String -> IPM r m Loc
 askSymbol n = do
   d <- asks symbols
   let (Just a) = n `M.lookup` d
   return a
 
-askMemory :: Loc -> IPM r (Value r)
+askMemory :: Monad m => Loc -> IPM r m (Value r m)
 askMemory l = callCC $ \k -> do
   d <- gets memory
   let (Just v) = l `M.lookup` d
@@ -80,14 +86,12 @@ askMemory l = callCC $ \k -> do
     VUninitialized -> throwError $ "Using uninitialized global variable/constant!"
     _ -> k v
 
-askReturnCont :: IPM r (Value r -> IPM r (Value r))
+askReturnCont :: IPM r m (Value r m -> IPM r m (Value r m))
 askReturnCont = do
   (Just k) <- asks returnCont
   return k
 
--- localContinueBreakCont kc kb =
---   local (\e -> e {continueCont=Just kc, breakCont=Just kb})
-localSymbols :: (M.Map String (Value r)) -> IPM r a -> IPM r a
+localSymbols :: Monad m => (M.Map String (Value r m)) -> IPM r m a -> IPM r m a
 localSymbols s m = do
   let symlist = M.toList s
   ss <- mapM (\(n, v) -> do { a <- allocMemory v; return (n, a) }) symlist
@@ -96,11 +100,11 @@ localSymbols s m = do
     allSymbols= (snd <$> ss) ++ (allSymbols e)
     }) m
 
-allocMemory :: Value r -> IPM r Loc
+allocMemory :: Monad m => Value r m -> IPM r m Loc
 allocMemory v = do
   a <- gets locCounter
   modify (\s -> s {locCounter=a+1, memory=M.insert a v (memory s)})
   return a
 
-setMemory :: Loc -> Value r -> IPM r ()
+setMemory :: Monad m => Loc -> Value r m -> IPM r m ()
 setMemory l v = modify (\s -> s {memory=M.insert l v (memory s)})

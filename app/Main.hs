@@ -19,8 +19,7 @@ runCode code = do
       case runExcept $ runTCM (TB.withBuiltins $ checkProgramTypes ast) of
         Left err -> putStrLn err >> return ()
         Right _ -> do
-          let ((v, o), s) = runIPM return (IB.withBuiltins $ runProgram ast)
-          putStr o
+          (v, s) <- runIPM return (IB.withBuiltins $ runProgram ast)
           case v of
             Left err -> putStrLn err >> return ()
             Right _ -> return ()
