@@ -4,28 +4,34 @@ import Interpretter.Core
 import Interpretter.Expr
 
 import Control.Monad.Cont
+import Control.Monad.Except
 import Control.Monad.Reader
 
 import qualified Ast as A
 
 execStmts :: Monad m => [A.Stmt] -> IPM r m ()
 execStmts [] = return ()
-execStmts (h:t) = execStmt h >> execStmts t
+execStmts (A.SPass : t) = execStmts t
 
-
-execStmt :: Monad m => A.Stmt -> IPM r m ()
-execStmt (A.SReturn e) = do
+execStmts (A.SReturn e : t) = do
   k <- askReturnCont
   v <- evalExpr e >>= unreference
   k v
   return ()
 
-execStmt (A.SExpr e) = evalExpr e >> return ()
+execStmts (A.SExpr e : t) = evalExpr e >> execStmts t
 
-execStmt i@(A.SWhile e s) = callCC $ \k -> do
+execStmts i@(A.SWhile e s : t) = do
   (VBool b) <- evalExpr e >>= unreference
   if b then
-    --(localContinueBreakCont (execStmt i) k $ (execStmts s >> execStmt i)) >> k
-    execStmts s >> execStmt i >> k ()
+    execStmts s >> execStmts i
   else
-    k ()
+    execStmts t
+
+execStmts (A.SIf [] es : t) = execStmts es >> execStmts t
+execStmts (A.SIf ((c,s):cr) es : t) = do
+  (VBool b) <- evalExpr c >>= unreference
+  if b then
+    execStmts s >> execStmts t
+  else
+    execStmts (A.SIf cr es : t)

@@ -1,0 +1,10 @@
+Stmt: if-else true
+====
+def main
+  :: ()
+  if true
+    print 1
+  else
+    print 2
+====
+1

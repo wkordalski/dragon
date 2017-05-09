@@ -8,6 +8,8 @@ import Control.Monad.Reader
 
 import qualified Ast as A
 
+opName n = "φ_" ++ n
+
 unreference :: Monad m => Value r m -> IPM r m (Value r m)
 unreference (VLReference l) = do
   v <- askMemory l
@@ -16,6 +18,7 @@ unreference v = return v
 
 evalExpr :: Monad m => A.Expr -> IPM r m (Value r m)
 evalExpr (A.EInteger n) = return $ VInt n
+evalExpr (A.EBoolean b) = return $ VBool b
 evalExpr (A.ENone) = return $ VNone
 evalExpr (A.EVariable n) = do
   v <- askSymbol n
@@ -26,6 +29,16 @@ evalExpr (A.ECall fe ae) = do
   a <- evalExpr ae >>= unreference
   if length args + 1 < ac then
     return $ VFunction ac (a:args) fun
-  else do
-    v <- callCC $ \k -> fun (a:args) k
-    return v
+  else
+    callCC $ \k -> fun (reverse $ a:args) k
+
+evalExpr (A.EOpAdd e1 e2) = evalBinaryOperator (opName "add") e1 e2
+
+evalBinaryOperator n e1 e2 = do
+  (VFunction ac args fun) <- askSymbol n >>= askMemory >>= unreference
+  a1 <- evalExpr e1 >>= unreference
+  a2 <- evalExpr e2 >>= unreference
+  if length args + 2 < ac then
+    return $ VFunction ac (a2:a1:args) fun
+  else
+    callCC $ \k -> fun (reverse $ a2:a1:args) k

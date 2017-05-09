@@ -1,0 +1,29 @@
+Return function
+====
+def id x
+  :: int -> int
+  return x
+
+def double x
+  :: int -> int
+  return x+x
+
+def zero x
+  :: int -> int
+  return 0
+
+def choose b
+  :: bool -> (int -> int)
+  if b
+    return double
+  else
+    return id
+  return zero
+
+def main
+  :: ()
+  print ((choose true) 4)
+  print ((choose false) 4)
+====
+8
+4

@@ -1,0 +1,6 @@
+Empty main
+====
+def main
+  :: ()
+  return ()
+====

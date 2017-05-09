@@ -1,0 +1,7 @@
+Stmt: while false
+====
+def main
+  :: ()
+  while false
+    print 1
+====

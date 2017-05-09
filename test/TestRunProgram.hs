@@ -13,6 +13,11 @@ import Interpretter.Program
 
 import Control.Monad.Except
 import Control.Monad.Identity
+import Control.Monad
+import qualified Data.Text as T
+import System.Directory
+
+import System.FilePath ((</>))
 
 runCode :: String -> Either String String
 runCode code = do
@@ -28,24 +33,37 @@ runCode code = do
             Right _ -> Right (output s)
 
 
-infix 4 ~~>
-(~~>) :: String -> Either String String -> Test
-(~~>) s v = runCode s ~?= v
 
-tests = TestList [
-  "Empty main"                ~: testEmptyMain,
-  "Print 5"                   ~: testPrintFive
-  ]
-
-testEmptyMain =
-  ("def main\n" ++
-  "  :: ()\n" ++
-  "  return ()\n")
-  ~~> Right ""
+tests = do
+  test_files <- getRecursiveContents "testfiles/"
+  let filterd_files = filter hasTestSuffix test_files
+  file_tests <- mapM fileToTest filterd_files
+  return $ TestList file_tests
+  where
+    hasTestSuffix p = T.isSuffixOf (T.pack ".test") (T.pack p)
+    fileToTest p = readFile p >>= process_file p
 
 
-testPrintFive =
-  ("def main\n" ++
-  "  :: ()\n" ++
-  "  return print 5\n")
-  ~~> Right "5\n"
+getRecursiveContents :: FilePath -> IO [FilePath]
+getRecursiveContents topdir = do
+  names <- getDirectoryContents topdir
+  let properNames = filter (`notElem` [".", ".."]) names
+  paths <- forM properNames $ \name -> do                                -- 1
+    let path = topdir </> name
+    isDirectory <- doesDirectoryExist path
+    if isDirectory
+      then getRecursiveContents path
+      else return [path]
+  return (concat paths)                                                  -- 2
+
+
+process_file path contents =
+  return $ test_name ~: (((T.unpack . T.strip . T.pack) predicted) ~?= output)
+  where
+    [desc, code, output] =
+      map (T.unpack . T.strip) $ T.splitOn (T.pack "====\n") (T.pack contents)
+    predicted = case TestRunProgram.runCode code of
+      Right o -> o
+      Left e -> "!!!\n" ++ e
+    removeExt path = fst $ splitAt (length path - 5) path
+    test_name = desc ++ " (" ++ removeExt path  ++ ")"

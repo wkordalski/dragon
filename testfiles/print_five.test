@@ -1,0 +1,7 @@
+Print 5
+====
+def main
+  :: ()
+  return print 5
+====
+5

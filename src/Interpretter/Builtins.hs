@@ -11,11 +11,14 @@ import Control.Monad.Writer
 
 import qualified Data.Map as M
 
+opName n = "φ_" ++ n
+
 withBuiltins :: IPM r IO a -> IPM r IO a
 withBuiltins = do
   localSymbols (
     M.fromList [
-      ("print", VFunction 1 [] printFun)
+      ("print", VFunction 1 [] printFun),
+      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b))
     ]
     )
 
@@ -23,17 +26,18 @@ mockBuiltins :: Monad m => IPM r m a -> IPM r m a
 mockBuiltins = do
   localSymbols (
     M.fromList [
-      ("print", VFunction 1 [] printFunMock)
+      ("print", VFunction 1 [] printFunMock),
+      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b))
     ]
     )
 
 printFun :: [Value r IO] -> (Value r IO -> IPM r IO (Value r IO)) -> IPM r IO (Value r IO)
 printFun [VInt n] cont = do
   liftIO $ putStrLn (show n)
-  cont  VNone
+  cont VNone
 
 
 printFunMock :: Monad m => [Value r m] -> (Value r m -> IPM r m (Value r m)) -> IPM r m (Value r m)
 printFunMock [VInt n] cont = do
   modify $ \s -> s {output= (output s) ++ (show n ++ "\n")}
-  cont  VNone
+  cont VNone

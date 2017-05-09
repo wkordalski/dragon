@@ -1,0 +1,16 @@
+Check if always returning in inner block works
+====
+def func b x
+  :: bool -> int -> int
+  if true
+    return x
+  else
+    return 0
+
+def main
+  :: ()
+  print (func true 4)
+  print (func false 5)
+====
+4
+0

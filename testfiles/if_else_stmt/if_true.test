@@ -1,0 +1,8 @@
+Stmt: if true
+====
+def main
+  :: ()
+  if true
+    print 1
+====
+1

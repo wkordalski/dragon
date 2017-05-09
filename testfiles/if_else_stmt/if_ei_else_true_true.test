@@ -1,0 +1,12 @@
+Stmt: if-ei-else true true
+====
+def main
+  :: ()
+  if true
+    print 1
+  ei true
+    print 2
+  else
+    print 3
+====
+1

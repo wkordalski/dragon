@@ -1,0 +1,11 @@
+Call function
+====
+def func x
+  :: int -> int
+  return x+x
+
+def main
+  :: ()
+  print (func 4)
+====
+8

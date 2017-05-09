@@ -1,0 +1,17 @@
+Deep call of functions
+====
+def gunc x
+  :: int -> int
+  return x+1
+
+def func x
+  :: int -> int
+  print (gunc x)
+  return x+x
+
+def main
+  :: ()
+  print (func 4)
+====
+5
+8
