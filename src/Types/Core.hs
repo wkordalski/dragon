@@ -152,6 +152,10 @@ match' (TTuple ps) (TTuple ts) ac
 --     match' (TTuple ps) (TTuple ts) ac
 match' (TTuple ps) t _ = throwError $ "Type must be tuple-type:\n" ++ show t ++ "\n"
 
+-- Pointers
+match' (TPointer ps) (TPointer ts) ac = match' ps ts ac
+match' (TPointer _) t _ = throwError $ "Type must be pointer-type:\n" ++ show t ++ "\n"
+
 match' p t _ = throwError $ "Type mismatch:\n" ++ show p ++ "\n-- and --\n" ++ show t ++ "\n"
 
 getPlaceholders :: Type -> [Int]

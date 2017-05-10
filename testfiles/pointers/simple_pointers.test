@@ -1,0 +1,20 @@
+Simple pointers usage
+====
+def inc p
+  :: ptr int -> ()
+  !p = !p + 1
+
+def mkvar ()
+  :: () -> ptr int
+  var v :: int = 1
+  return &v
+
+def main
+  :: ()
+  var p :: ptr int = mkvar ()
+  print (!p)
+  inc p
+  print (!p)
+====
+1
+2

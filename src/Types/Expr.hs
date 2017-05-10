@@ -23,6 +23,10 @@ typeOf' (A.EAddress e) = do
   when (not l) (throwError $ "Address operator argument is not l-value")
   return (TPointer t, False)
 
+typeOf' (A.EDereference e) = do
+  (t, _) <- typeOf' e
+  mr <- matchType (TPointer $ TPlaceholder 1) t
+  return (mr!1, True)
 
 typeOf' (A.ECall e0 e1) = do
   (t0, _) <- typeOf' e0

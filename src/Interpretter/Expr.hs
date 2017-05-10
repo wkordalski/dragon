@@ -22,6 +22,10 @@ evalExpr (A.EAddress e) = do
   (VLReference l) <- evalExpr e
   return $ VPointer l
 
+evalExpr (A.EDereference e) = do
+  (VPointer l) <- evalExpr e >>= unreference
+  return $ VLReference l
+
 evalExpr (A.ECall fe ae) = do
   (VFunction ac args fun) <- evalExpr fe >>= unreference
   a <- evalExpr ae >>= unreference
