@@ -10,12 +10,6 @@ import qualified Ast as A
 
 opName n = "φ_" ++ n
 
-unreference :: Monad m => Value r m -> IPM r m (Value r m)
-unreference (VLReference l) = do
-  v <- askMemory l
-  return v
-unreference v = return v
-
 evalExpr :: Monad m => A.Expr -> IPM r m (Value r m)
 evalExpr (A.EInteger n) = return $ VInt n
 evalExpr (A.EBoolean b) = return $ VBool b
@@ -23,6 +17,10 @@ evalExpr (A.ENone) = return $ VNone
 evalExpr (A.EVariable n) = do
   v <- askSymbol n
   return $ VLReference v
+
+evalExpr (A.EAddress e) = do
+  (VLReference l) <- evalExpr e
+  return $ VPointer l
 
 evalExpr (A.ECall fe ae) = do
   (VFunction ac args fun) <- evalExpr fe >>= unreference

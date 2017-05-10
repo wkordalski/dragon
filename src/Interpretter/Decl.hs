@@ -24,7 +24,7 @@ getPatternOfDecl :: A.Decl -> IPM r m A.Ptrn
 getPatternOfDecl (A.DVariable p _ _) = return p
 getPatternOfDecl (A.DFunction p _ _ _) = return p
 
-getNamesOfDecls :: [A.Decl] -> IPM r m [String]
+getNamesOfDecls :: Monad m => [A.Decl] -> IPM r m [String]
 getNamesOfDecls [] = return []
 getNamesOfDecls (h:t) = do
   p <- getPatternOfDecl h

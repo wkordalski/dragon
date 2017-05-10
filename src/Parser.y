@@ -193,9 +193,15 @@ Expr14 : if Expr14 then Expr14 else Expr14  { EIf $2 $4 $6 }
 ArgsPatternMatch : {- empty -}                    { [] }
 ArgsPatternMatch : PatternMatch ArgsPatternMatch  { $1 : $2 }
 
-PatternMatch : id         { PNamed $1 }
-             | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
-             | '(' ')'                              { PVoid }
+PatternMatch : PatternMatch1      { $1 }
+
+PatternMatch0 : id         { PNamed $1 }
+              | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
+              | '(' ')'                              { PVoid }
+              | '(' PatternMatch ')'    { $2 }
+
+PatternMatch1 : PatternMatch0     { $1 }
+              | '!' PatternMatch1 { PDereference $2 }
 
 TuplePmatchRest : ',' PatternMatch        { [$2] }
                 | ',' PatternMatch TuplePmatchRest { $2 : $3 }

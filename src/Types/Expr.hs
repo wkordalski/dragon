@@ -18,6 +18,12 @@ typeOf' (A.EVariable n) = do
   t <- askTypeOf n
   return (t, True)
 
+typeOf' (A.EAddress e) = do
+  (t, l) <- typeOf' e
+  when (not l) (throwError $ "Address operator argument is not l-value")
+  return (TPointer t, False)
+
+
 typeOf' (A.ECall e0 e1) = do
   (t0, _) <- typeOf' e0
   (t1, _) <- typeOf' e1

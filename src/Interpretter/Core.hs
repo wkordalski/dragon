@@ -30,6 +30,7 @@ data Value r m
   -- function is such a thing that gets parameter, continuation (depending on result)
   -- and returns continuation
   | VLReference Loc
+  | VPointer Loc
   -- count of parameters to run, applied parameters, what to call then
   | VFunction Int [Value r m] ([Value r m] -> (Value r m -> IPM r m (Value r m)) -> IPM r m (Value r m))
   -- global variable not initialized now - initialization should be done now
@@ -101,6 +102,7 @@ localSymbols s m = do
     }) m
 
 allocMemory :: Monad m => Value r m -> IPM r m Loc
+allocMemory (VLReference l) = return l
 allocMemory v = do
   a <- gets locCounter
   modify (\s -> s {locCounter=a+1, memory=M.insert a v (memory s)})
@@ -108,3 +110,9 @@ allocMemory v = do
 
 setMemory :: Monad m => Loc -> Value r m -> IPM r m ()
 setMemory l v = modify (\s -> s {memory=M.insert l v (memory s)})
+
+unreference :: Monad m => Value r m -> IPM r m (Value r m)
+unreference (VLReference l) = do
+  v <- askMemory l
+  return v
+unreference v = return v

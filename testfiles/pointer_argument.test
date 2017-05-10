@@ -1,0 +1,13 @@
+Pointer in argument
+====
+def inc !x
+  :: ptr int -> ()
+  x = x + 1
+
+def main
+  :: ()
+  var v :: int = 1
+  inc (&v)
+  print v
+====
+2
