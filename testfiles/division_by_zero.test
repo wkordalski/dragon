@@ -1,0 +1,8 @@
+Division by zero
+====
+def main
+  :: ()
+  print (9/0)
+====
+!!!
+Division by 0 error!
