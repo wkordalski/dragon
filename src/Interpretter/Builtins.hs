@@ -21,7 +21,12 @@ arithmetic = [
   (opName "divide", VFunction 2 [] $ \[VInt a, VInt b] k ->
     if b == 0 then throwError "Division by 0 error!" else k (VInt $ a `quot` b)
     ),
-  (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b))
+  (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b)),
+  (opName "less_than_equal", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<=b)),
+  (opName "greater_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a>b)),
+  (opName "greater_than_equal", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a>=b)),
+  (opName "equal", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a==b)),
+  (opName "not_equal", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a/=b))
   ]
 
 withBuiltins :: IPM r IO a -> IPM r IO a

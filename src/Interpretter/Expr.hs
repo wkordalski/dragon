@@ -37,6 +37,11 @@ evalExpr (A.EOpSubtract e1 e2) = evalBinaryOperator (opName "subtract") e1 e2
 evalExpr (A.EOpMultiply e1 e2) = evalBinaryOperator (opName "multiply") e1 e2
 evalExpr (A.EOpDivide e1 e2) = evalBinaryOperator (opName "divide") e1 e2
 evalExpr (A.EOpLessThan e1 e2) = evalBinaryOperator (opName "less_than") e1 e2
+evalExpr (A.EOpLessEqualThan e1 e2) = evalBinaryOperator (opName "less_than_equal") e1 e2
+evalExpr (A.EOpGreaterThan e1 e2) = evalBinaryOperator (opName "greater_than") e1 e2
+evalExpr (A.EOpGreaterEqualThan e1 e2) = evalBinaryOperator (opName "greater_than_equal") e1 e2
+evalExpr (A.EOpEqual e1 e2) = evalBinaryOperator (opName "equal") e1 e2
+evalExpr (A.EOpNotEqual e1 e2) = evalBinaryOperator (opName "not_equal") e1 e2
 
 evalExpr (A.EOpAssign e1 e2) = do
   (VLReference l1) <- evalExpr e1
