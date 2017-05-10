@@ -32,7 +32,7 @@ data Expr
   | EOpAdd Expr Expr
   | EOpSubtract Expr Expr
   | EOpMultiply Expr Expr
-  | EOpDivision Expr Expr
+  | EOpDivide Expr Expr
   | EOpModulo Expr Expr
   | EOpEqual Expr Expr
   | EOpNotEqual Expr Expr

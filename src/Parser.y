@@ -152,7 +152,7 @@ Expr4 : '+' Expr4         { EUOpPlus $2 }
       | Expr3a            { $1 }
 
 Expr5 : Expr5 '*' Expr4   { EOpMultiply $1 $3 }
-      | Expr5 '/' Expr4   { EOpDivision $1 $3 }
+      | Expr5 '/' Expr4   { EOpDivide $1 $3 }
       | Expr5 '%' Expr4   { EOpModulo $1 $3 }
       | Expr4             { $1 }
 

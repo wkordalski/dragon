@@ -20,6 +20,8 @@ withBuiltins = do
       ("print", VFunction 1 [] printFun),
       (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b)),
       (opName "subtract", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a-b)),
+      (opName "multiply", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a*b)),
+      (opName "divide", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a `quot` b)),
       (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b))
     ]
     )
@@ -31,6 +33,8 @@ mockBuiltins = do
       ("print", VFunction 1 [] printFunMock),
       (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b)),
       (opName "subtract", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a-b)),
+      (opName "multiply", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a*b)),
+      (opName "divide", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a `quot` b)),
       (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b))
     ]
     )
