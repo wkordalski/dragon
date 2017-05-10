@@ -33,6 +33,7 @@ evalExpr (A.ECall fe ae) = do
     callCC $ \k -> fun (reverse $ a:args) k
 
 evalExpr (A.EOpAdd e1 e2) = evalBinaryOperator (opName "add") e1 e2
+evalExpr (A.EOpSubtract e1 e2) = evalBinaryOperator (opName "subtract") e1 e2
 evalExpr (A.EOpLessThan e1 e2) = evalBinaryOperator (opName "less_than") e1 e2
 
 evalExpr (A.EOpAssign e1 e2) = do

@@ -25,6 +25,7 @@ typeOf' (A.ECall e0 e1) = do
   return (mr!1, False)
 
 typeOf' (A.EOpAdd e1 e2) = typeOfBinOp (opName "add") e1 e2
+typeOf' (A.EOpSubtract e1 e2) = typeOfBinOp (opName "subtract") e1 e2
 typeOf' (A.EOpLessThan e1 e2) = typeOfBinOp (opName "less_than") e1 e2
 
 typeOf' (A.EOpAssign e1 e2) = do

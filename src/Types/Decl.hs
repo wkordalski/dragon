@@ -42,5 +42,5 @@ checkDeclTypes (A.DVariable p t e) = typeFromAst t >>= checkExprType e
 checkDeclTypes (A.DFunction p t ps stmts) = do
   td <- typeFromAst t
   (tr, mta) <- typeOfNamesInPatterns ps td
-  sm <- typeOfNamesInPattern p tr
+  sm <- typeOfNamesInPattern p td
   localFunction sm mta tr $ checkStmtsTypes stmts
