@@ -24,17 +24,15 @@ typeOf' (A.ECall e0 e1) = do
   mr <- matchType (t1 :-> TPlaceholder 1) t0
   return (mr!1, False)
 
+typeOf' (A.EOpAdd e1 e2) = typeOfBinOp (opName "add") e1 e2
+typeOf' (A.EOpLessThan e1 e2) = typeOfBinOp (opName "less_than") e1 e2
 
--- Note about += operator - lhs should be calculated once
--- then we can interpret lv = lv + rhs
--- where lv is left-value of lhs
-
-typeOf' (A.EOpAdd e1 e2) = do
-  t0 <- askTypeOfOp "add"
-  (t1, _) <- typeOf' e1
+typeOf' (A.EOpAssign e1 e2) = do
+  (t1, l1) <- typeOf' e1
+  when (not l1) (throwError $ "LHS of = is not l-value")
   (t2, _) <- typeOf' e2
-  mr <- matchType (t1 :-> t2 :-> TPlaceholder 1) t0
-  return (mr!1, False)
+  mr <- matchType t1 t2
+  return (t1, True)
 
 typeOf' (A.EOpAssignAdd e1 e2) = do
   t0 <- askTypeOfOp "add"
@@ -52,3 +50,11 @@ typeOfExpr expr = do
 
 checkExprType :: A.Expr -> Type -> TCM ()
 checkExprType e t = typeOfExpr e >>= matchType t >> return ()
+
+
+typeOfBinOp n e1 e2 = do
+  t0 <- askTypeOf n
+  (t1, _) <- typeOf' e1
+  (t2, _) <- typeOf' e2
+  mr <- matchType (t1 :-> t2 :-> TPlaceholder 1) t0
+  return (mr!1, False)

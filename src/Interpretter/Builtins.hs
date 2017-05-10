@@ -18,7 +18,8 @@ withBuiltins = do
   localSymbols (
     M.fromList [
       ("print", VFunction 1 [] printFun),
-      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b))
+      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b)),
+      (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b))
     ]
     )
 
@@ -27,7 +28,8 @@ mockBuiltins = do
   localSymbols (
     M.fromList [
       ("print", VFunction 1 [] printFunMock),
-      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b))
+      (opName "add", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VInt $ a+b)),
+      (opName "less_than", VFunction 2 [] $ \[VInt a, VInt b] k -> k (VBool $ a<b))
     ]
     )
 

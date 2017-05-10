@@ -1,0 +1,9 @@
+Assign expression
+====
+def main
+  :: ()
+  var x :: int = 3
+  x = 4
+  print x
+====
+4

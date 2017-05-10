@@ -33,6 +33,14 @@ evalExpr (A.ECall fe ae) = do
     callCC $ \k -> fun (reverse $ a:args) k
 
 evalExpr (A.EOpAdd e1 e2) = evalBinaryOperator (opName "add") e1 e2
+evalExpr (A.EOpLessThan e1 e2) = evalBinaryOperator (opName "less_than") e1 e2
+
+evalExpr (A.EOpAssign e1 e2) = do
+  (VLReference l1) <- evalExpr e1
+  a2 <- evalExpr e2 >>= unreference
+  setMemory l1 a2
+  return $ VLReference l1
+
 
 evalBinaryOperator n e1 e2 = do
   (VFunction ac args fun) <- askSymbol n >>= askMemory >>= unreference

@@ -1,0 +1,13 @@
+Stmt: while - print range
+====
+def main
+  :: ()
+  var i :: int = 0
+  while i < 4
+    print i
+    i = i + 1
+====
+0
+1
+2
+3

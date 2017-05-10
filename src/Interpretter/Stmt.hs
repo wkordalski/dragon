@@ -2,6 +2,7 @@ module Interpretter.Stmt where
 
 import Interpretter.Core
 import Interpretter.Expr
+import Interpretter.Ptrn
 
 import Control.Monad.Cont
 import Control.Monad.Except
@@ -20,6 +21,11 @@ execStmts (A.SReturn e : t) = do
   return ()
 
 execStmts (A.SExpr e : t) = evalExpr e >> execStmts t
+
+execStmts (A.SVariable p _ e : t) = do
+  sm <- evalExpr e >>= patternMatchValue p
+  localSymbols sm $ execStmts t
+  return ()
 
 execStmts i@(A.SWhile e s : t) = do
   (VBool b) <- evalExpr e >>= unreference
