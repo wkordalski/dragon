@@ -96,6 +96,7 @@ Declaration : def PatternMatch ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Sta
 Statements : Statement                { [$1] }
 Statements : Statement Statements     { $1 : $2 }
 Statements : '\n' Statements          { $2 }
+Statements : '\n'                     { [] }
 
 Statement : Expr '\n'                             { SExpr $1 }
 Statement : return Expr '\n'                      { SReturn $2 }
