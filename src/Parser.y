@@ -170,7 +170,7 @@ Expr8 : Expr8 '==' Expr7  { EOpEqual $1 $3 }
       | Expr8 '>=' Expr7  { EOpGreaterEqualThan $1 $3 }
       | Expr7             { $1 }
 
-Expr9 : '\\' ArgsPatternMatch '(' '::' TypeExpr ')' '->' Expr    { ELambda $5 $2 $8 }
+Expr9 : '\\' ArgsPatternMatch '::' '(' TypeExpr ')' '->' Expr    { ELambda $5 $2 $8 }
       | Expr8                                           { $1 }
 
 Expr10 : Expr10 '=' Expr9   { EOpAssign $1 $3 }

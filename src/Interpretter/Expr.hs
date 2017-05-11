@@ -1,14 +1,34 @@
 module Interpretter.Expr where
 
 import Interpretter.Core
+import Interpretter.Ptrn
 
 import Debug.Trace
 import Control.Monad.Cont
 import Control.Monad.Reader
 
 import qualified Ast as A
+import qualified Data.Map as M
 
 opName n = "φ_" ++ n
+
+evalLambdaExpr :: Monad m => (M.Map String (Value r m)) -> A.Expr -> IPM r m (Value r m)
+evalLambdaExpr sm e =
+  callCC $ \k -> do
+    let slist = M.toList sm
+    slm <- mapM (\(n, v) -> do { a <- allocMemory v; return (n, a) }) slist
+    local (\e -> e {
+      symbols=(M.fromList slm `M.union` symbols e),
+      allSymbols= (snd <$> slm) ++ (allSymbols e),
+      returnCont=Just k
+      }) $ (evalExpr e)
+
+localLambdaDecl :: Monad m => [A.Ptrn] -> [Value r m] -> A.Expr -> IPMEnvironment r m -> IPM r m (Value r m)
+localLambdaDecl ps vs ss env = do
+  local (const env) $ do
+    sa <- patternsMatchValues ps vs
+    evalLambdaExpr sa ss
+
 
 evalExpr :: Monad m => A.Expr -> IPM r m (Value r m)
 evalExpr (A.EInteger n) = return $ VInt n
@@ -33,6 +53,12 @@ evalExpr (A.ECall fe ae) = do
     return $ VFunction ac (a:args) fun
   else
     callCC $ \k -> fun (reverse $ a:args) k
+
+evalExpr (A.ELambda _ ps e) = do
+  env <- ask
+  let fun args cont = localLambdaDecl ps args e env >>= cont
+  let f = VFunction (length ps) [] fun
+  return f
 
 evalExpr (A.EOpAdd e1 e2) = evalBinaryOperator (opName "add") e1 e2
 evalExpr (A.EOpSubtract e1 e2) = evalBinaryOperator (opName "subtract") e1 e2

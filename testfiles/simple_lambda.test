@@ -1,0 +1,20 @@
+Simple lambda expression
+====
+def transform_print f
+  :: (int -> int) -> ()
+  print (f 1)
+  print (f 2)
+  print (f 3)
+
+def main
+  :: ()
+  transform_print (\x :: (int -> int) -> x)
+  transform_print (\x :: (int -> int) -> x*x)
+  return ()
+====
+1
+2
+3
+1
+4
+9

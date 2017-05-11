@@ -1,6 +1,7 @@
 module Types.Expr where
 
 import Types.Core
+import Types.Ptrn
 import qualified Ast as A
 
 import Control.Monad.Except
@@ -33,6 +34,13 @@ typeOf' (A.ECall e0 e1) = do
   (t1, _) <- typeOf' e1
   mr <- matchType (t1 :-> TPlaceholder 1) t0
   return (mr!1, False)
+
+typeOf' (A.ELambda t ps e) = do
+  td <- typeFromAst t
+  (tr, sm) <- typeOfNamesInPatterns ps td
+  (te, _) <- localTypesOf sm $ typeOf' e
+  mr <- matchType tr te
+  return (td, False)
 
 typeOf' (A.EOpAdd e1 e2) = typeOfBinOp (opName "add") e1 e2
 typeOf' (A.EOpSubtract e1 e2) = typeOfBinOp (opName "subtract") e1 e2

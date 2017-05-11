@@ -1,0 +1,8 @@
+Return between line comments
+====
+def main
+  :: ()
+  # before return
+  return ()
+  # after return
+====
