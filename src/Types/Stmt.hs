@@ -29,7 +29,7 @@ checkStmtsTypes (A.SVariable p t e : rest) = do
 checkStmtsTypes (A.SFunction p t ps stmts : rest) = do
   td <- typeFromAst t
   (tr, mta) <- typeOfNamesInPatterns ps td
-  sm <- typeOfNamesInPattern p tr
+  sm <- typeOfNamesInPattern p td
   localFunction sm mta tr $ checkStmtsTypes stmts
   localTypesOf sm $ checkStmtsTypes rest
 

@@ -39,24 +39,11 @@ initializeFunction :: Monad m => A.Decl -> IPM r m ()
 initializeFunction (A.DFunction p t ps ss) = do
   let (A.PNamed s) = p
   l <- askSymbol s
-  let fun args cont = localFunDecl ps args cont $ execStmts ss
+  env <- ask
+  let fun args cont = localFunDecl ps args ss env >>= cont
   let f = VFunction (length ps) [] fun
   setMemory l f
 
-localFunDecl :: Monad m => [A.Ptrn] -> [Value r m] -> (Value r m -> IPM r m (Value r m)) -> IPM r m () -> IPM r m (Value r m)
-localFunDecl ps vs k m = do
-  sa <- patternsMatchValues ps vs
-  (localSymbolsNrc sa k m) >> k VNone
-  --(localSymbols sa $ local (\e -> e {returnCont=Just k, rcCounter=(rcCounter e + 1)}) m) >> k VNone
-
-localSymbolsNrc s k m = do
-  let symlist = M.toList s
-  ss <- mapM (\(n, v) -> do { a <- allocMemory v; return (n, a) }) symlist
-  local (\e -> e {
-    symbols= (M.fromList ss) `M.union` (symbols e),
-    allSymbols= (snd <$> ss) ++ (allSymbols e),
-    returnCont=Just k, rcCounter=(rcCounter e + 1)
-    }) m
 
 isFunction :: A.Decl -> Bool
 isFunction (A.DVariable _ _ _) = False

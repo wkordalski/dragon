@@ -14,8 +14,7 @@ data IPMEnvironment r m = IPMEnvironment {
   symbols :: M.Map String Loc,
   -- for GC - the roots
   allSymbols :: [Loc],
-  returnCont :: Maybe (Value r m -> IPM r m (Value r m)),
-  rcCounter :: Int
+  returnCont :: Maybe (Value r m -> IPM r m (Value r m))
 }
 data IPMState r m = IPMState {
   locCounter :: Int,
@@ -42,6 +41,9 @@ instance Show (Value r m) where
   show (VNone) = "VNone"
   show (VTuple _) = "VTuple ..."
   show (VFunction _ _ _) = "VFunction ..."
+  show (VUninitialized) = "<uninitialized value>"
+  show (VPointer l) = "<pointer " ++ show l ++ ">"
+  show (VLReference l) = "<l-reference " ++ show l ++ ">"
 
 -- funkcja dostaje parametry, dowiaduje się, co ma zrobić z rezultatem (Value->Cont)
 -- wykonuje kod funkcji, któryś statement robi `return $ CReturn wynik`
@@ -49,8 +51,7 @@ instance Show (Value r m) where
 ipmEnvironment = IPMEnvironment {
   symbols=M.empty,
   allSymbols=[],
-  returnCont=Nothing,
-  rcCounter=0
+  returnCont=Nothing
 }
 ipmState = IPMState {
   locCounter=0,

@@ -1,0 +1,26 @@
+Local function statement
+====
+def incgen x
+  :: int -> (() -> int)
+  var c :: int = 0
+  def func ()
+    :: () -> int
+    c = c + x
+    return c
+  return func
+
+def main
+  :: ()
+  var g :: () -> int = incgen 1
+  print (g ())
+  print (g ())
+  var h :: () -> int = incgen 2
+  print (h ())
+  print (h ())
+  print (g ())
+====
+1
+2
+2
+4
+3
