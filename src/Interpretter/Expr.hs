@@ -47,12 +47,9 @@ evalExpr (A.EDereference e) = do
   return $ VLReference l
 
 evalExpr (A.ECall fe ae) = do
-  (VFunction ac args fun) <- evalExpr fe >>= unreference
+  f <- evalExpr fe >>= unreference
   a <- evalExpr ae >>= unreference
-  if length args + 1 < ac then
-    return $ VFunction ac (a:args) fun
-  else
-    callCC $ \k -> fun (reverse $ a:args) k
+  callFunction f [a]
 
 evalExpr (A.ELambda _ ps e) = do
   env <- ask
@@ -77,12 +74,26 @@ evalExpr (A.EOpAssign e1 e2) = do
   setMemory l1 a2
   return $ VLReference l1
 
+evalExpr (A.EOpAssignAdd e1 e2) = evalBinaryAssignOperator (opName "add") e1 e2
+
+
+callFunction (VFunction ac applied fun) args =
+  if length applied + length args < ac then
+    return $ VFunction ac (args ++ applied) fun
+  else
+    callCC $ \k -> fun (reverse $ args ++ applied) k
 
 evalBinaryOperator n e1 e2 = do
-  (VFunction ac args fun) <- askSymbol n >>= askMemory >>= unreference
+  f <- askSymbol n >>= askMemory >>= unreference
   a1 <- evalExpr e1 >>= unreference
   a2 <- evalExpr e2 >>= unreference
-  if length args + 2 < ac then
-    return $ VFunction ac (a2:a1:args) fun
-  else
-    callCC $ \k -> fun (reverse $ a2:a1:args) k
+  callFunction f [a2, a1]
+
+evalBinaryAssignOperator n e1 e2 = do
+  f <- askSymbol n >>= askMemory >>= unreference
+  r1@(VLReference l1) <- evalExpr e1
+  a1 <- unreference r1
+  a2 <- evalExpr e2 >>= unreference
+  v <- callFunction f [a2, a1]
+  setMemory l1 v
+  return r1

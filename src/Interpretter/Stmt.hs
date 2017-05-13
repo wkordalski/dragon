@@ -43,7 +43,7 @@ execStmts (A.SReturn e : t) = do
 execStmts (A.SExpr e : t) = evalExpr e >> execStmts t
 
 execStmts (A.SVariable p _ e : t) = do
-  sm <- evalExpr e >>= patternMatchValue p
+  sm <- evalExpr e >>= unreference >>= patternMatchValue p
   localSymbols sm $ execStmts t
   return ()
 

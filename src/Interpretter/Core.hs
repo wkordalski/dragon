@@ -110,10 +110,12 @@ allocMemory v = do
   return a
 
 setMemory :: Monad m => Loc -> Value r m -> IPM r m ()
-setMemory l v = modify (\s -> s {memory=M.insert l v (memory s)})
+setMemory l v = do
+  vv <- unreference v
+  modify (\s -> s {memory=M.insert l vv (memory s)})
 
 unreference :: Monad m => Value r m -> IPM r m (Value r m)
 unreference (VLReference l) = do
-  v <- askMemory l
+  v <- askMemory l >>= unreference
   return v
 unreference v = return v

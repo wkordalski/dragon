@@ -1,0 +1,53 @@
+Many variables and parameters with the same name
+====
+def inc !i
+  :: ptr int -> int
+  i = i + 1
+  var i :: int = i
+  i = i + 1
+  def empty ()
+    :: () -> ()
+    print i
+  var f :: () -> () = empty
+  while i < 4
+    print i
+    i = i + 1
+    var i :: int = 0
+    print i
+    if true
+      var i :: int = 12
+      f ()
+      def fun ()
+        :: () -> ()
+        print i
+        var i :: int = 13
+        print i
+      f = fun
+      print i
+    print i
+  print i
+  f ()
+  return i
+
+def main
+  :: ()
+  var i :: int = 0
+  print (inc (&i))
+  print i
+====
+2
+0
+3
+12
+0
+3
+0
+12
+13
+12
+0
+4
+12
+13
+4
+1

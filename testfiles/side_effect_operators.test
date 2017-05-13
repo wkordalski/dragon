@@ -1,0 +1,11 @@
+Side effect operators (+=)
+====
+def main
+  :: ()
+  var i :: int = 0
+  i += 1 += 2 += 3
+  print (i += 4)
+  print i
+====
+10
+10
