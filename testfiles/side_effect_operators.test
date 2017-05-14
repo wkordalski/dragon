@@ -1,11 +1,18 @@
-Side effect operators (+=)
+Side effect operators (+=, -=, *=, /=)
 ====
 def main
   :: ()
   var i :: int = 0
   i += 1 += 2 += 3
   print (i += 4)
+  print (i *= i)
+  print (i -= i)
+  i = 6
+  print (i /= 2)
   print i
 ====
 10
-10
+100
+0
+3
+3

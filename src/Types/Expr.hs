@@ -60,13 +60,10 @@ typeOf' (A.EOpAssign e1 e2) = do
   mr <- matchType t1 t2
   return (t1, True)
 
-typeOf' (A.EOpAssignAdd e1 e2) = do
-  t0 <- askTypeOfOp "add"
-  (t1, l1) <- typeOf' e1
-  when (not l1) (throwError $ "LHS of += is not l-value")
-  (t2, _) <- typeOf' e2
-  mr <- matchType (t1 :-> t2 :-> t1) t0
-  return (t1, True)
+typeOf' (A.EOpAssignAdd e1 e2) = typeOfBinAssignOp "add" e1 e2
+typeOf' (A.EOpAssignSubtract e1 e2) = typeOfBinAssignOp "subtract" e1 e2
+typeOf' (A.EOpAssignMultiply e1 e2) = typeOfBinAssignOp "multiply" e1 e2
+typeOf' (A.EOpAssignDivide e1 e2) = typeOfBinAssignOp "divide" e1 e2
 
 
 typeOfExpr :: A.Expr -> TCM Type
@@ -84,3 +81,11 @@ typeOfBinOp n e1 e2 = do
   (t2, _) <- typeOf' e2
   mr <- matchType (t1 :-> t2 :-> TPlaceholder 1) t0
   return (mr!1, False)
+
+typeOfBinAssignOp n e1 e2 = do
+  t0 <- askTypeOfOp n
+  (t1, l1) <- typeOf' e1
+  when (not l1) (throwError $ "LHS of "++n++" operator is not l-value")
+  (t2, _) <- typeOf' e2
+  mr <- matchType (t1 :-> t2 :-> t1) t0
+  return (t1, True)

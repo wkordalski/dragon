@@ -42,7 +42,9 @@ data Expr
   | EOpGreaterEqualThan Expr Expr
   | EOpAssign Expr Expr
   | EOpAssignAdd Expr Expr
+  | EOpAssignSubtract Expr Expr
   | EOpAssignMultiply Expr Expr
+  | EOpAssignDivide Expr Expr
   | ELambda TypeExpr [Ptrn] Expr
   | EOpNegation Expr
   | EOpConjunction Expr Expr

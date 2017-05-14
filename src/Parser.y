@@ -66,7 +66,9 @@ import Lexer
   '\\'    { TOperator "\\" }
   '->'    { TOperator "->" }
   '+='    { TOperator "+=" }
+  '-='    { TOperator "-=" }
   '*='    { TOperator "*=" }
+  '/='    { TOperator "/=" }
 
   '('     { TRParenO }
   ')'     { TRParenC }
@@ -176,7 +178,9 @@ Expr9 : '\\' ArgsPatternMatch '::' '(' TypeExpr ')' '->' Expr    { ELambda $5 $2
 
 Expr10 : Expr10 '=' Expr9   { EOpAssign $1 $3 }
        | Expr10 '+=' Expr9  { EOpAssignAdd $1 $3 }
+       | Expr10 '-=' Expr9  { EOpAssignSubtract $1 $3 }
        | Expr10 '*=' Expr9  { EOpAssignMultiply $1 $3 }
+       | Expr10 '/=' Expr9  { EOpAssignDivide $1 $3 }
        | Expr9              { $1 }
 
 Expr11 : not Expr10         { EOpNegation $2 }

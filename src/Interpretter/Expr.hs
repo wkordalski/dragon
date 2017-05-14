@@ -75,6 +75,9 @@ evalExpr (A.EOpAssign e1 e2) = do
   return $ VLReference l1
 
 evalExpr (A.EOpAssignAdd e1 e2) = evalBinaryAssignOperator (opName "add") e1 e2
+evalExpr (A.EOpAssignSubtract e1 e2) = evalBinaryAssignOperator (opName "subtract") e1 e2
+evalExpr (A.EOpAssignMultiply e1 e2) = evalBinaryAssignOperator (opName "multiply") e1 e2
+evalExpr (A.EOpAssignDivide e1 e2) = evalBinaryAssignOperator (opName "divide") e1 e2
 
 
 callFunction (VFunction ac applied fun) args =
