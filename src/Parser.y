@@ -122,7 +122,8 @@ IfElseMaybe : IfElse                      { $1 }
             | {- empty -}                 { [SPass] }
 
 
-Expr : Expr14              { $1 }
+--Expr : Expr14              { $1 }
+Expr : Expr10              { $1 }
 
 Expr0 :: { Expr }
 Expr0 : id                { EVariable $1 }
@@ -131,13 +132,13 @@ Expr0 : id                { EVariable $1 }
       | false             { EBoolean False }
       | '(' ')'           { ENone }
       | '(' Expr ')'      { $2 }
-      | '(' Expr TupleRest ')'  { ETuple ($2 : $3 ) }
+--      | '(' Expr TupleRest ')'  { ETuple ($2 : $3 ) }
 
-TupleRest : ',' Expr            { [$2] }
-          | ',' Expr TupleRest  { $2 : $3 }
+--TupleRest : ',' Expr            { [$2] }
+--          | ',' Expr TupleRest  { $2 : $3 }
 
-Expr1 : Expr1 '.' id      { EMember $1 $3 }
-      | Expr0             { $1 }
+Expr1 : Expr0             { $1 }
+--      | Expr1 '.' id      { EMember $1 $3 }
 
 Expr2 : '!' Expr2         { EDereference $2 }
       | '&' Expr2         { EAddress $2 }
@@ -147,16 +148,16 @@ Expr3 : Expr3 Expr2       { ECall $1 $2 }
       | Expr2             { $1 }
 
 
-Expr3a : Expr3 '**' Expr3a  { EOpPower $1 $3 }
+--Expr3a : Expr3 '**' Expr3a  { EOpPower $1 $3 }
 Expr3a : Expr3             { $1 }
 
-Expr4 : '+' Expr4         { EUOpPlus $2 }
-      | '-' Expr4         { EUOpMinus $2 }
-      | Expr3a            { $1 }
+Expr4 : Expr3a            { $1 }
+--      | '+' Expr4         { EUOpPlus $2 }
+--      | '-' Expr4         { EUOpMinus $2 }
 
 Expr5 : Expr5 '*' Expr4   { EOpMultiply $1 $3 }
       | Expr5 '/' Expr4   { EOpDivide $1 $3 }
-      | Expr5 '%' Expr4   { EOpModulo $1 $3 }
+--      | Expr5 '%' Expr4   { EOpModulo $1 $3 }
       | Expr4             { $1 }
 
 Expr6 : Expr6 '+' Expr5   { EOpAdd $1 $3 }
@@ -183,17 +184,17 @@ Expr10 : Expr10 '=' Expr9   { EOpAssign $1 $3 }
        | Expr10 '/=' Expr9  { EOpAssignDivide $1 $3 }
        | Expr9              { $1 }
 
-Expr11 : not Expr10         { EOpNegation $2 }
-       | Expr10             { $1 }
-
-Expr12 : Expr12 and Expr11  { EOpConjunction $1 $3 }
-       | Expr11             { $1 }
-
-Expr13 : Expr13 or Expr12   { EOpAlternative $1 $3 }
-       | Expr12             { $1 }
-
-Expr14 : if Expr14 then Expr14 else Expr14  { EIf $2 $4 $6 }
-       | Expr13                             { $1 }
+-- Expr11 : not Expr10         { EOpNegation $2 }
+--        | Expr10             { $1 }
+--
+-- Expr12 : Expr12 and Expr11  { EOpConjunction $1 $3 }
+--        | Expr11             { $1 }
+--
+-- Expr13 : Expr13 or Expr12   { EOpAlternative $1 $3 }
+--        | Expr12             { $1 }
+--
+-- Expr14 : if Expr14 then Expr14 else Expr14  { EIf $2 $4 $6 }
+--        | Expr13                             { $1 }
 
 ArgsPatternMatch : {- empty -}                    { [] }
 ArgsPatternMatch : PatternMatch ArgsPatternMatch  { $1 : $2 }
@@ -201,15 +202,15 @@ ArgsPatternMatch : PatternMatch ArgsPatternMatch  { $1 : $2 }
 PatternMatch : PatternMatch1      { $1 }
 
 PatternMatch0 : id         { PNamed $1 }
-              | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
+--              | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
               | '(' ')'                              { PVoid }
               | '(' PatternMatch ')'    { $2 }
 
 PatternMatch1 : PatternMatch0     { $1 }
               | '!' PatternMatch1 { PDereference $2 }
 
-TuplePmatchRest : ',' PatternMatch        { [$2] }
-                | ',' PatternMatch TuplePmatchRest { $2 : $3 }
+-- TuplePmatchRest : ',' PatternMatch        { [$2] }
+--                 | ',' PatternMatch TuplePmatchRest { $2 : $3 }
 
 -- add function type
 TypeExpr :: { TypeExpr }
@@ -219,13 +220,15 @@ TypeExpr0 : id                    { TNamed $1 }
           | bool                  { TBool }
           | '(' ')'               { TVoid }
           | '(' TypeExpr ')'      { $2 }
-          | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
+--          | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
 
-TupleTypeExprRest : ',' TypeExpr    { [$2] }
-                  | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
+-- TupleTypeExprRest : ',' TypeExpr    { [$2] }
+--                   | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
 
+TypeExpr0a :
 
 TypeExpr1 : ptr TypeExpr1             { TPointer $2 }
+--          | TypeExpr1 TypeExpr0       { TApplication $1 $2 }
           | TypeExpr0                 { $1 }
 
 TypeExpr2 : TypeExpr1 '->' TypeExpr2  { TFunction $1 $3 }

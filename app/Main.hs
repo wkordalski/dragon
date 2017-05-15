@@ -10,18 +10,19 @@ import qualified Interpretter.Builtins as IB
 import Interpretter.Program
 
 import Control.Monad.Except
+import System.IO
 
 runCode :: String -> IO ()
 runCode code = do
   case runExcept (lexer code >>= parser) of
-    Left err -> putStrLn err >> return ()
+    Left err -> hPutStrLn stderr err >> return ()
     Right ast ->
       case runExcept $ runTCM (TB.withBuiltins $ checkProgramTypes ast) of
-        Left err -> putStrLn err >> return ()
+        Left err -> hPutStrLn stderr err >> return ()
         Right _ -> do
           (v, s) <- runIPM return (IB.withBuiltins $ runProgram ast)
           case v of
-            Left err -> putStrLn err >> return ()
+            Left err -> hPutStrLn stderr err >> return ()
             Right _ -> return ()
 
 main :: IO ()
