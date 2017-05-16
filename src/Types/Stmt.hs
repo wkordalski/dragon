@@ -2,6 +2,7 @@ module Types.Stmt where
 
 import Types.Core
 import Types.Expr
+import Types.Match
 import Types.Ptrn
 
 import Control.Monad.Except

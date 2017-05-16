@@ -1,6 +1,7 @@
 module Types.Ptrn (typeOfNamesInPattern, typeOfNamesInPatterns) where
 
 import Types.Core
+import Types.Match
 import qualified Ast as A
 
 import Control.Monad.Except

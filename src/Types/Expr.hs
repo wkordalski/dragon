@@ -1,6 +1,7 @@
 module Types.Expr where
 
 import Types.Core
+import Types.Match
 import Types.Ptrn
 import qualified Ast as A
 

@@ -225,8 +225,6 @@ TypeExpr0 : id                    { TNamed $1 }
 -- TupleTypeExprRest : ',' TypeExpr    { [$2] }
 --                   | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
 
-TypeExpr0a :
-
 TypeExpr1 : ptr TypeExpr1             { TPointer $2 }
 --          | TypeExpr1 TypeExpr0       { TApplication $1 $2 }
           | TypeExpr0                 { $1 }

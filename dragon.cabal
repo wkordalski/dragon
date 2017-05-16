@@ -18,6 +18,7 @@ library
   exposed-modules:     Lexer, Parser, Ast,
                        Types.Core, Types.Builtins, Types.Program
                        Types.Stmt, Types.Decl, Types.Expr, Types.Ptrn,
+                       Types.Match,
                        Interpretter.Core, Interpretter.Builtins,
                        Interpretter.Expr, Interpretter.Stmt, Interpretter.Decl,
                        Interpretter.Program, Interpretter.Ptrn
