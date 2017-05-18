@@ -12,6 +12,8 @@ patternMatchValue (A.PNamed s) v = return $ M.singleton s v
 patternMatchValue (A.PVoid) v = return M.empty
 patternMatchValue (A.PDereference p) (VPointer l) =
   patternMatchValue p $ VLReference l
+patternMatchValue (A.PTuple ps) (VTuple vs) =
+  foldM (\a (p, v) -> do {mp <- patternMatchValue p v; return $ mp `M.union` a}) M.empty (zip ps vs)
 
 patternsMatchValues :: Monad m => [A.Ptrn] -> [Value r m] -> IPM r m (M.Map String (Value r m))
 patternsMatchValues ps vs = do

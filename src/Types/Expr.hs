@@ -20,6 +20,10 @@ typeOf' (A.EVariable n) = do
   t <- askTypeOf n
   return (t, True)
 
+typeOf' (A.ETuple l) = do
+  tl <- mapM (\e -> do {(t, _) <- typeOf' e; return t}) l
+  return $ (TTuple tl, False)
+
 typeOf' (A.EAddress e) = do
   (t, l) <- typeOf' e
   when (not l) (throwError $ "Address operator argument is not l-value")

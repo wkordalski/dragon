@@ -38,6 +38,10 @@ evalExpr (A.EVariable n) = do
   v <- askSymbol n
   return $ VLReference v
 
+evalExpr (A.ETuple l) = do
+  vs <- mapM evalExpr l
+  return $ VTuple vs
+
 evalExpr (A.EAddress e) = do
   (VLReference l) <- evalExpr e
   return $ VPointer l

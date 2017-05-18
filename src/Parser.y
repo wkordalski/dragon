@@ -132,10 +132,10 @@ Expr0 : id                { EVariable $1 }
       | false             { EBoolean False }
       | '(' ')'           { ENone }
       | '(' Expr ')'      { $2 }
---      | '(' Expr TupleRest ')'  { ETuple ($2 : $3 ) }
+      | '(' Expr TupleRest ')'  { ETuple ($2 : $3 ) }
 
---TupleRest : ',' Expr            { [$2] }
---          | ',' Expr TupleRest  { $2 : $3 }
+TupleRest : ',' Expr            { [$2] }
+          | ',' Expr TupleRest  { $2 : $3 }
 
 Expr1 : Expr0             { $1 }
 --      | Expr1 '.' id      { EMember $1 $3 }
@@ -202,15 +202,15 @@ ArgsPatternMatch : PatternMatch ArgsPatternMatch  { $1 : $2 }
 PatternMatch : PatternMatch1      { $1 }
 
 PatternMatch0 : id         { PNamed $1 }
---              | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
+              | '(' PatternMatch TuplePmatchRest ')' { PTuple ($2 : $3) }
               | '(' ')'                              { PVoid }
               | '(' PatternMatch ')'    { $2 }
 
 PatternMatch1 : PatternMatch0     { $1 }
               | '!' PatternMatch1 { PDereference $2 }
 
--- TuplePmatchRest : ',' PatternMatch        { [$2] }
---                 | ',' PatternMatch TuplePmatchRest { $2 : $3 }
+TuplePmatchRest : ',' PatternMatch        { [$2] }
+                | ',' PatternMatch TuplePmatchRest { $2 : $3 }
 
 -- add function type
 TypeExpr :: { TypeExpr }
@@ -220,10 +220,10 @@ TypeExpr0 : id                    { TNamed $1 }
           | bool                  { TBool }
           | '(' ')'               { TVoid }
           | '(' TypeExpr ')'      { $2 }
---          | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
+          | '(' TypeExpr TupleTypeExprRest ')' { TTuple $ $2:$3 }
 
--- TupleTypeExprRest : ',' TypeExpr    { [$2] }
---                   | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
+TupleTypeExprRest : ',' TypeExpr    { [$2] }
+                  | ',' TypeExpr TupleTypeExprRest { $2 : $3 }
 
 TypeExpr1 : ptr TypeExpr1             { TPointer $2 }
 --          | TypeExpr1 TypeExpr0       { TApplication $1 $2 }
