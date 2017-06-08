@@ -105,10 +105,13 @@ Statement : return Expr '\n'                      { SReturn $2 }
 Statement : var PatternMatch '::' TypeExpr '=' Expr '\n'    { SVariable $2 $4 $6 }
 Statement : def PatternMatch ArgsPatternMatch '::' TypeExpr '=' Expr '\n'                   { SFunction $2 $5 $3 [SReturn $7] }
 Statement : def PatternMatch ArgsPatternMatch '\n' '\>' '::' TypeExpr '\n' Statements '\<'  { SFunction $2 $7 $3 $9 }
-Statement : IfIf IfEiMany IfElseMaybe             { SIf ($1:$2) $3 }
+Statement : IfIfNonElse IfElseMaybe               { SIf $1 $2 }
 Statement : while Expr '\n' '\>' Statements '\<'  { SWhile $2 $5 }
 Statement : while Expr ',' Statement              { SWhile $2 [$4] }
 Statement : pass '\n'                             { SPass }
+
+IfIfNonElse : IfIf                        { [$1] }
+IfIfNonElse : IfIfNonElse IfEi            { $1 ++ [$2] }
 
 IfIf : if Expr '\n' '\>' Statements '\<'  { ($2, $5) }
      | if Expr ',' Statement              { ($2, [$4]) }
@@ -116,8 +119,6 @@ IfEi : ei Expr '\n' '\>' Statements '\<'  { ($2, $5) }
      | ei Expr ',' Statement              { ($2, [$4]) }
 IfElse : else '\n' '\>' Statements '\<'   { $4 }
        | else ',' Statement               { [$3] }
-IfEiMany : IfEi IfEiMany                  { $1 : $2 }
-         | {- empty -}                    { [] }
 IfElseMaybe : IfElse                      { $1 }
             | {- empty -}                 { [SPass] }
 
@@ -174,14 +175,14 @@ Expr8 : Expr8 '==' Expr7  { EOpEqual $1 $3 }
       | Expr8 '>=' Expr7  { EOpGreaterEqualThan $1 $3 }
       | Expr7             { $1 }
 
-Expr9 : '\\' ArgsPatternMatch '::' '(' TypeExpr ')' '->' Expr    { ELambda $5 $2 $8 }
+Expr9 : '\\' ArgsPatternMatch '::' '(' TypeExpr ')' '->' Expr9    { ELambda $5 $2 $8 }
       | Expr8                                           { $1 }
 
-Expr10 : Expr10 '=' Expr9   { EOpAssign $1 $3 }
-       | Expr10 '+=' Expr9  { EOpAssignAdd $1 $3 }
-       | Expr10 '-=' Expr9  { EOpAssignSubtract $1 $3 }
-       | Expr10 '*=' Expr9  { EOpAssignMultiply $1 $3 }
-       | Expr10 '/=' Expr9  { EOpAssignDivide $1 $3 }
+Expr10 : Expr9 '=' Expr10   { EOpAssign $1 $3 }
+       | Expr9 '+=' Expr10  { EOpAssignAdd $1 $3 }
+       | Expr9 '-=' Expr10  { EOpAssignSubtract $1 $3 }
+       | Expr9 '*=' Expr10  { EOpAssignMultiply $1 $3 }
+       | Expr9 '/=' Expr10  { EOpAssignDivide $1 $3 }
        | Expr9              { $1 }
 
 -- Expr11 : not Expr10         { EOpNegation $2 }

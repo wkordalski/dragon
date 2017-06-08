@@ -1,0 +1,25 @@
+Local recurssion of two functions
+====
+def id x
+  :: int -> int
+  return x
+
+def main
+  :: ()
+  var f1 :: int -> int = id
+  def f2 x
+    :: int -> int
+    print(x)
+    return f1 (x-1)
+  def f1_imp x
+    :: int -> int
+    if x > 0
+      return f2 x
+    return 42
+  f1 = f1_imp
+  print (f2 3)
+====
+3
+2
+1
+42

@@ -1,11 +1,11 @@
 Tuple support
 ====
-def func (a, b)
-  :: (int, int) -> int
+def func (a, b, e)
+  :: (int, int, (int, bool)) -> int
   return a + b
 
 def main
   :: ()
-  print (func (1, 2))
+  print (func (1, 2, (3, false)))
 ====
 3

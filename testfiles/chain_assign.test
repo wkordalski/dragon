@@ -1,0 +1,10 @@
+Chained assign operator
+====
+def main
+  :: ()
+  var x :: int = 0
+  var y :: int = 0
+  x = y = 7
+  print (x + y)
+====
+14
