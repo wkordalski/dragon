@@ -55,8 +55,20 @@ typeOf' (A.EOpLessThan e1 e2) = typeOfBinOp (opName "less_than") e1 e2
 typeOf' (A.EOpLessEqualThan e1 e2) = typeOfBinOp (opName "less_than_equal") e1 e2
 typeOf' (A.EOpGreaterThan e1 e2) = typeOfBinOp (opName "greater_than") e1 e2
 typeOf' (A.EOpGreaterEqualThan e1 e2) = typeOfBinOp (opName "greater_than_equal") e1 e2
-typeOf' (A.EOpEqual e1 e2) = typeOfBinOp (opName "equal") e1 e2
-typeOf' (A.EOpNotEqual e1 e2) = typeOfBinOp (opName "not_equal") e1 e2
+
+typeOf' (A.EOpEqual e1 e2) = do
+  (t1, _) <- typeOf' e1
+  (t2, _) <- typeOf' e2
+  when (t1 /= t2) $ throwError "Calling equal operator on different-types values"
+  when (t1 /= TInt && t1 /= TBool) $ throwError "Calling equal on non-basic types - that is int or bool"
+  return (TBool, False)
+
+typeOf' (A.EOpNotEqual e1 e2) = do
+  (t1, _) <- typeOf' e1
+  (t2, _) <- typeOf' e2
+  when (t1 /= t2) $ throwError "Calling not-equal operator on different-types values"
+  when (t1 /= TInt && t1 /= TBool) $ throwError "Calling not-equal on non-basic types - that is int or bool"
+  return (TBool, False)
 
 typeOf' (A.EOpAssign e1 e2) = do
   (t1, l1) <- typeOf' e1

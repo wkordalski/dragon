@@ -69,8 +69,20 @@ evalExpr (A.EOpLessThan e1 e2) = evalBinaryOperator (opName "less_than") e1 e2
 evalExpr (A.EOpLessEqualThan e1 e2) = evalBinaryOperator (opName "less_than_equal") e1 e2
 evalExpr (A.EOpGreaterThan e1 e2) = evalBinaryOperator (opName "greater_than") e1 e2
 evalExpr (A.EOpGreaterEqualThan e1 e2) = evalBinaryOperator (opName "greater_than_equal") e1 e2
-evalExpr (A.EOpEqual e1 e2) = evalBinaryOperator (opName "equal") e1 e2
-evalExpr (A.EOpNotEqual e1 e2) = evalBinaryOperator (opName "not_equal") e1 e2
+
+evalExpr (A.EOpEqual e1 e2) = do
+  a1 <- evalExpr e1 >>= unreference
+  a2 <- evalExpr e2 >>= unreference
+  case (a1, a2) of
+    (VBool v1, VBool v2) -> return $ VBool (v1 == v2)
+    (VInt v1, VInt v2) -> return $ VBool (v1 == v2)
+
+evalExpr (A.EOpNotEqual e1 e2) = do
+  a1 <- evalExpr e1 >>= unreference
+  a2 <- evalExpr e2 >>= unreference
+  case (a1, a2) of
+    (VBool v1, VBool v2) -> return $ VBool (v1 /= v2)
+    (VInt v1, VInt v2) -> return $ VBool (v1 /= v2)
 
 evalExpr (A.EOpAssign e1 e2) = do
   (VLReference l1) <- evalExpr e1

@@ -1,0 +1,21 @@
+Comparing ints and bools for equality
+====
+def pb b
+  :: bool -> ()
+  if b
+    print 1
+  else
+    print 0
+def main
+  :: ()
+  pb (1 == 2)
+  pb (2 != 3)
+  pb (true == true)
+  pb (true != false)
+  pb ((true == false) == (1 == 0))
+====
+0
+1
+1
+1
+1
