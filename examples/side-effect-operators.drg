@@ -1,0 +1,15 @@
+def main
+  :: ()
+  var i :: int = 0
+  var j :: int = 0
+  var k :: int = 0
+  i += j += k += 3
+  print (i += 4)
+  print (i *= i)
+  print (i -= i)
+  i = 6
+  print (i /= 2)
+  print i
+  print j
+  print k
+

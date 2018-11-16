@@ -1,0 +1,13 @@
+def plus x y
+  :: int -> int -> int
+  return x+y
+
+def transform_print f x
+  :: (int -> int) -> int -> ()
+  print (f x)
+
+def main
+  :: ()
+  transform_print (plus 2) 4
+  transform_print (plus 5) 2
+

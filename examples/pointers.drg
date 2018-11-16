@@ -1,0 +1,16 @@
+def inc !x
+  :: ptr int -> ()
+  x = x + 1
+
+def mkvar ()
+  :: () -> ptr int
+  var v :: int = 1
+  return &v
+
+def main
+  :: ()
+  var !v :: ptr int = mkvar ()
+  print v
+  inc (&v)
+  print v
+

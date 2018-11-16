@@ -1,0 +1,17 @@
+def transform_print f x
+  :: (int -> int) -> int -> ()
+  print (f x)
+
+def id x
+  :: int -> int
+  return x
+
+def double x
+  :: int -> int
+  return x+x
+
+def main
+  :: ()
+  transform_print id 4
+  transform_print double 4
+
